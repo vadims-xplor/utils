@@ -151,10 +151,44 @@
       </header>
 
       <!-- Landscape 12-col layout: Inputs | Outputs+Anatomy+Summary | Charts -->
-      <section class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+      <section class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
 
-        <!-- Inputs -->
-        <article class="lg:col-span-5 xp-card p-4 space-y-3">
+        <!-- Monthly cost hero + Inputs -->
+        <div class="lg:col-span-5 space-y-4">
+          <article class="xp-card xp-card--hero p-4 space-y-2 text-white">
+            <h2 class="xp-subhead text-base text-white">Monthly cost <span class="text-white/70 text-xs font-normal">(approx.)</span></h2>
+
+            <div>
+              <p class="xp-eyebrow text-[9px] text-white/80">credits / month</p>
+              <p id="outCredits" class="num xp-display text-3xl leading-none mt-0.5 text-white"></p>
+            </div>
+
+            <div>
+              <p class="xp-eyebrow text-[9px] text-white/80">USD / month</p>
+              <p id="outUsd" class="num xp-display text-3xl leading-none mt-0.5" style="color: var(--xp-lime)"></p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 pt-2 border-t border-white/30 text-xs">
+              <div>
+                <p class="xp-eyebrow text-[9px] text-white/80">runs / month</p>
+                <p id="outRuns" class="num text-sm text-white"></p>
+              </div>
+              <div>
+                <p class="xp-eyebrow text-[9px] text-white/80">billed sec / run</p>
+                <p id="outBilledSec" class="num text-sm text-white"></p>
+              </div>
+              <div>
+                <p class="xp-eyebrow text-[9px] text-white/80">credits / run</p>
+                <p id="outCreditsPerRun" class="num text-sm text-white"></p>
+              </div>
+              <div>
+                <p class="xp-eyebrow text-[9px] text-white/80">$ / run</p>
+                <p id="outUsdPerRun" class="num text-sm text-white"></p>
+              </div>
+            </div>
+          </article>
+
+        <article class="xp-card p-4 space-y-3">
           <h2 class="xp-subhead text-lg">Inputs</h2>
 
           <div class="grid grid-cols-2 gap-x-4 gap-y-3">
@@ -235,41 +269,6 @@
           </p>
         </article>
 
-        <!-- Middle column: Outputs hero + Anatomy + Summary stacked -->
-        <div class="lg:col-span-3 space-y-4">
-          <article class="xp-card xp-card--hero p-4 space-y-2 text-white">
-            <h2 class="xp-subhead text-base text-white">Monthly cost <span class="text-white/70 text-xs font-normal">(approx.)</span></h2>
-
-            <div>
-              <p class="xp-eyebrow text-[9px] text-white/80">credits / month</p>
-              <p id="outCredits" class="num xp-display text-3xl leading-none mt-0.5 text-white"></p>
-            </div>
-
-            <div>
-              <p class="xp-eyebrow text-[9px] text-white/80">USD / month</p>
-              <p id="outUsd" class="num xp-display text-3xl leading-none mt-0.5" style="color: var(--xp-lime)"></p>
-            </div>
-
-            <div class="grid grid-cols-2 gap-2 pt-2 border-t border-white/30 text-xs">
-              <div>
-                <p class="xp-eyebrow text-[9px] text-white/80">runs / month</p>
-                <p id="outRuns" class="num text-sm text-white"></p>
-              </div>
-              <div>
-                <p class="xp-eyebrow text-[9px] text-white/80">billed sec / run</p>
-                <p id="outBilledSec" class="num text-sm text-white"></p>
-              </div>
-              <div>
-                <p class="xp-eyebrow text-[9px] text-white/80">credits / run</p>
-                <p id="outCreditsPerRun" class="num text-sm text-white"></p>
-              </div>
-              <div>
-                <p class="xp-eyebrow text-[9px] text-white/80">$ / run</p>
-                <p id="outUsdPerRun" class="num text-sm text-white"></p>
-              </div>
-            </div>
-          </article>
-
           <!-- Anatomy of one run (compact) -->
           <article class="xp-card p-4 space-y-2">
             <h2 class="xp-subhead text-base">Anatomy of one run</h2>
@@ -289,17 +288,11 @@
               <span id="legendPad" style="color: var(--xp-pink)">pad: </span>
             </div>
           </article>
-
-          <!-- Summary -->
-          <article class="rounded-xp p-4 space-y-1" style="background: var(--xp-lime-tint-2); border: 1px solid var(--xp-lime);">
-            <h2 class="xp-subhead text-base">Summary</h2>
-            <p id="summary" class="text-xs text-xp-darkest-grey leading-relaxed"></p>
-          </article>
         </div>
 
         <!-- Right column: Two charts stacked -->
-        <div class="lg:col-span-4 space-y-4">
-          <article class="xp-card p-4 space-y-2">
+        <div class="lg:col-span-7 flex flex-col gap-4 min-h-0">
+          <article class="xp-card p-4 flex flex-col gap-2 flex-1 min-h-0">
             <div class="flex items-baseline justify-between gap-2 flex-wrap">
               <h2 class="xp-subhead text-base">Time vs cost <span class="text-xp-mid-grey text-xs font-normal">across sizes</span></h2>
               <span class="text-[10px] text-xp-dark-grey">speedup <span class="num font-bold"><span id="curveSpeedup">1.70</span>×</span>/step</span>
@@ -309,10 +302,10 @@
               <span class="flex items-center gap-1"><span class="inline-block w-3 h-[3px] rounded" style="background:var(--xp-teal-shade)"></span>Credits/run <span class="text-xp-mid-grey">(R)</span></span>
               <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-full border" style="background:var(--xp-lime); border-color:var(--xp-lime-shade)"></span>Selected</span>
             </div>
-            <svg id="tradeoffChart" viewBox="0 0 760 320" class="w-full" style="max-height:240px" font-family="'Poppins', system-ui, sans-serif"></svg>
+            <svg id="tradeoffChart" viewBox="0 0 760 320" class="w-full" style="aspect-ratio: 760/320;" font-family="'Poppins', system-ui, sans-serif"></svg>
           </article>
 
-          <article class="xp-card p-4 space-y-2">
+          <article class="xp-card p-4 flex flex-col gap-2 flex-1 min-h-0">
             <div class="flex items-baseline justify-between gap-2 flex-wrap">
               <h2 class="xp-subhead text-base">Monthly $ &amp; runtime <span class="text-xp-mid-grey text-xs font-normal">by size</span></h2>
               <span class="text-[10px] text-xp-dark-grey">speedup <span class="num font-bold"><span id="curveSpeedup2">1.70</span>×</span>/step</span>
@@ -322,10 +315,16 @@
               <span class="flex items-center gap-1"><span class="inline-block w-3 h-[3px] rounded" style="background:var(--xp-pink)"></span>Runtime <span class="text-xp-mid-grey">(R, min)</span></span>
               <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-full border" style="background:var(--xp-lime); border-color:var(--xp-lime-shade)"></span>Selected</span>
             </div>
-            <svg id="monthlyChart" viewBox="0 0 760 300" class="w-full" style="max-height:240px" font-family="'Poppins', system-ui, sans-serif"></svg>
+            <svg id="monthlyChart" viewBox="0 0 900 300" class="w-full" style="aspect-ratio: 3/1;" font-family="'Poppins', system-ui, sans-serif"></svg>
           </article>
         </div>
       </section>
+
+      <!-- Full-width: Summary -->
+      <article class="rounded-xp p-4 space-y-1" style="background: var(--xp-lime-tint-2); border: 1px solid var(--xp-lime);">
+        <h2 class="xp-subhead text-base">Summary</h2>
+        <p id="summary" class="text-xs text-xp-darkest-grey leading-relaxed"></p>
+      </article>
 
       <footer class="text-[10px] text-xp-mid-grey pt-2 border-t border-xp-light-grey flex flex-wrap justify-between gap-2">
         <p><span class="font-bold">Approximate.</span> Excludes multi-cluster scaling, queuing, cloud-services charges, contract-specific pricing.</p>
@@ -492,6 +491,24 @@
         { label: "3XL", cph: 64  },
       ];
 
+      function smoothPath(pts) {
+        if (pts.length < 2) return "";
+        let d = `M ${pts[0][0]} ${pts[0][1]}`;
+        const t = 0.2;
+        for (let i = 0; i < pts.length - 1; i++) {
+          const p0 = pts[i - 1] || pts[i];
+          const p1 = pts[i];
+          const p2 = pts[i + 1];
+          const p3 = pts[i + 2] || p2;
+          const c1x = p1[0] + (p2[0] - p0[0]) * t;
+          const c1y = p1[1] + (p2[1] - p0[1]) * t;
+          const c2x = p2[0] - (p3[0] - p1[0]) * t;
+          const c2y = p2[1] - (p3[1] - p1[1]) * t;
+          d += ` C ${c1x} ${c1y}, ${c2x} ${c2y}, ${p2[0]} ${p2[1]}`;
+        }
+        return d;
+      }
+
       function drawChart() {
         const runtimeMin   = parseFloat($("runtimeMinutes").value) || 0;
         const baseCph      = getWh().cph;
@@ -513,7 +530,7 @@
         const maxCredits = Math.max(...series.map(d => d.credits));
 
         const W = 760, H = 320;
-        const PAD = { l: 56, r: 56, t: 24, b: 44 };
+        const PAD = { l: 72, r: 72, t: 24, b: 44 };
         const innerW = W - PAD.l - PAD.r;
         const innerH = H - PAD.t - PAD.b;
 
@@ -548,18 +565,18 @@
           svg += `<text x="${x}" y="${H - PAD.b + 32}" text-anchor="middle" font-size="9" fill="${C.mid}">${s.cph} c/h</text>`;
         });
 
-        svg += `<text x="${PAD.l - 44}" y="${PAD.t + innerH/2}" transform="rotate(-90 ${PAD.l - 44} ${PAD.t + innerH/2})" text-anchor="middle" font-size="10" fill="${C.purple}" font-weight="700" letter-spacing="1.5">RUNTIME</text>`;
-        svg += `<text x="${W - PAD.r + 44}" y="${PAD.t + innerH/2}" transform="rotate(90 ${W - PAD.r + 44} ${PAD.t + innerH/2})" text-anchor="middle" font-size="10" fill="${C.tealShade}" font-weight="700" letter-spacing="1.5">CREDITS / RUN</text>`;
+        svg += `<text x="${PAD.l - 52}" y="${PAD.t + innerH/2}" transform="rotate(-90 ${PAD.l - 52} ${PAD.t + innerH/2})" text-anchor="middle" font-size="10" fill="${C.purple}" font-weight="700" letter-spacing="1.5">RUNTIME</text>`;
+        svg += `<text x="${W - PAD.r + 52}" y="${PAD.t + innerH/2}" transform="rotate(90 ${W - PAD.r + 52} ${PAD.t + innerH/2})" text-anchor="middle" font-size="10" fill="${C.tealShade}" font-weight="700" letter-spacing="1.5">CREDITS / RUN</text>`;
 
         if (anchorIdx >= 0) {
           svg += `<line x1="${xOf(anchorIdx)}" x2="${xOf(anchorIdx)}" y1="${PAD.t}" y2="${PAD.t + innerH}" stroke="${C.lime}" stroke-width="2" stroke-dasharray="4 3"/>`;
         }
 
-        const runtimePath = series.map((d,i) => `${xOf(i)},${yRuntime(d.runtime)}`).join(" ");
-        svg += `<polyline fill="none" stroke="${C.purple}" stroke-width="2.5" points="${runtimePath}"/>`;
+        const runtimePts = series.map((d,i) => [xOf(i), yRuntime(d.runtime)]);
+        svg += `<path fill="none" stroke="${C.purple}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="${smoothPath(runtimePts)}"/>`;
 
-        const creditsPath = series.map((d,i) => `${xOf(i)},${yCredits(d.credits)}`).join(" ");
-        svg += `<polyline fill="none" stroke="${C.tealShade}" stroke-width="2.5" points="${creditsPath}"/>`;
+        const creditsPts = series.map((d,i) => [xOf(i), yCredits(d.credits)]);
+        svg += `<path fill="none" stroke="${C.tealShade}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="${smoothPath(creditsPts)}"/>`;
 
         series.forEach((d, i) => {
           const isAnchor = i === anchorIdx;
@@ -590,8 +607,8 @@
         const maxUsd = Math.max(...data.map(d => d.monthlyUsd), 1);
         const maxMin = Math.max(...data.map(d => d.runtimeMin), 0.01);
 
-        const W = 760, H = 300;
-        const PAD = { l: 64, r: 64, t: 24, b: 56 };
+        const W = 900, H = 300;
+        const PAD = { l: 96, r: 112, t: 24, b: 56 };
         const innerW = W - PAD.l - PAD.r;
         const innerH = H - PAD.t - PAD.b;
 
@@ -609,24 +626,6 @@
           if (v >= 1)  return v.toFixed(1) + "m";
           return (v * 60).toFixed(0) + "s";
         };
-
-        function smoothPath(pts) {
-          if (pts.length < 2) return "";
-          let d = `M ${pts[0][0]} ${pts[0][1]}`;
-          const t = 0.2;
-          for (let i = 0; i < pts.length - 1; i++) {
-            const p0 = pts[i - 1] || pts[i];
-            const p1 = pts[i];
-            const p2 = pts[i + 1];
-            const p3 = pts[i + 2] || p2;
-            const c1x = p1[0] + (p2[0] - p0[0]) * t;
-            const c1y = p1[1] + (p2[1] - p0[1]) * t;
-            const c2x = p2[0] - (p3[0] - p1[0]) * t;
-            const c2y = p2[1] - (p3[1] - p1[1]) * t;
-            d += ` C ${c1x} ${c1y}, ${c2x} ${c2y}, ${p2[0]} ${p2[1]}`;
-          }
-          return d;
-        }
 
         let svg = "";
 
@@ -650,8 +649,8 @@
           svg += `<text x="${cx}" y="${H - PAD.b + 32}" text-anchor="middle" font-size="9" fill="${C.mid}">${d.cph} c/h</text>`;
         });
 
-        svg += `<text x="${PAD.l - 50}" y="${PAD.t + innerH/2}" transform="rotate(-90 ${PAD.l - 50} ${PAD.t + innerH/2})" text-anchor="middle" font-size="10" fill="${C.tealShade}" font-weight="700" letter-spacing="1.5">USD / MONTH</text>`;
-        svg += `<text x="${W - PAD.r + 50}" y="${PAD.t + innerH/2}" transform="rotate(90 ${W - PAD.r + 50} ${PAD.t + innerH/2})" text-anchor="middle" font-size="10" fill="${C.pink}" font-weight="700" letter-spacing="1.5">RUNTIME / RUN</text>`;
+        svg += `<text x="${PAD.l - 64}" y="${PAD.t + innerH/2}" transform="rotate(-90 ${PAD.l - 64} ${PAD.t + innerH/2})" text-anchor="middle" font-size="10" fill="${C.tealShade}" font-weight="700" letter-spacing="1.5">USD / MONTH</text>`;
+        svg += `<text x="${W - PAD.r + 64}" y="${PAD.t + innerH/2}" transform="rotate(90 ${W - PAD.r + 64} ${PAD.t + innerH/2})" text-anchor="middle" font-size="10" fill="${C.pink}" font-weight="700" letter-spacing="1.5">RUNTIME / RUN</text>`;
 
         const usdPts = data.map((d,i) => [xOf(i), yUsd(d.monthlyUsd)]);
         svg += `<path fill="none" stroke="${C.tealShade}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="${smoothPath(usdPts)}"/>`;
