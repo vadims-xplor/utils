@@ -24,7 +24,6 @@ jobs:
       - name: Prepare site
         run: |
           mkdir -p _site
-          cp -r . _site/
           cp snowflake-credit-calculator.html _site/index.html
 
       - name: Setup Pages
