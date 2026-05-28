@@ -65,6 +65,11 @@
         --xp-gradient-hero: linear-gradient(135deg, #6923F4 0%, #3ACBCA 100%);
         --xp-gradient-primary: linear-gradient(135deg, #401F9F 0%, #6923F4 100%);
       }
+      html {
+        /* Fluid base: 15px on small screens, ~20px on wide monitors.
+           All rem-based sizes (Tailwind text-*, padding, etc.) scale with viewport width. */
+        font-size: clamp(15px, 0.55vw + 11px, 20px);
+      }
       body {
         font-family: 'Roboto', 'Aptos', system-ui, sans-serif;
         color: var(--xp-darkest-grey);
@@ -126,60 +131,57 @@
     </style>
   </head>
   <body>
-    <main class="max-w-5xl mx-auto px-6 py-12 space-y-10">
+    <main class="w-full px-4 py-3 space-y-4">
 
-      <header class="space-y-3">
-        <p class="xp-eyebrow text-[11px] text-xp-purple">FinOps · Compute · Approximate</p>
-        <h1 class="xp-display text-5xl leading-[1.05]">Snowflake credit calculator <span class="text-xp-mid-grey">(approx.)</span></h1>
-        <p class="text-xp-dark-grey max-w-2xl">
-          Estimate the monthly credits and dollar cost of a recurring workload
-          (e.g.&nbsp;a <strong class="font-bold">dbt build</strong>) given its runtime, warehouse size,
-          generation, auto-suspend, and run frequency.
-        </p>
-        <div class="bg-xp-lemon/30 border-l-4 border-xp-lemon px-3 py-2 text-sm max-w-2xl text-xp-darkest-grey rounded-r-xp">
-          <span class="font-bold">Approximate.</span> Excludes multi-cluster scaling,
-          queueing, query suspends, cloud services charges, and contract-specific pricing &mdash;
-          these are case-dependent and out of scope.
+      <!-- Compact landscape header -->
+      <header class="flex flex-wrap items-end justify-between gap-4">
+        <div class="min-w-0">
+          <p class="xp-eyebrow text-[10px] text-xp-purple">FinOps · Compute · Approximate</p>
+          <h1 class="xp-display text-3xl leading-[1.1] mt-0.5">Snowflake credit calculator <span class="text-xp-mid-grey text-2xl">(approx.)</span></h1>
+          <p class="text-xs text-xp-dark-grey mt-1 max-w-3xl">
+            Estimate monthly credits & dollars for a recurring workload (e.g.&nbsp;a <strong class="font-bold">dbt build</strong>) given runtime, warehouse size, generation, auto-suspend, and frequency.
+          </p>
         </div>
-        <div class="flex flex-wrap gap-2 pt-1">
+        <div class="flex flex-wrap gap-1.5">
           <span class="xp-pill bg-xp-teal-tint-2 text-xp-teal-shade">per-second billing</span>
-          <span class="xp-pill bg-xp-lime-tint-2 text-xp-lime-shade">60s minimum / resume</span>
+          <span class="xp-pill bg-xp-lime-tint-2 text-xp-lime-shade">60s min / resume</span>
           <span class="xp-pill bg-xp-purple-tint-2 text-xp-purple-shade">Gen2 = 1.25× Gen1</span>
+          <span class="xp-pill bg-xp-lemon/40 text-xp-darkest-grey">excludes multi-cluster &amp; CS charges</span>
         </div>
       </header>
 
-      <!-- INPUT + OUTPUT GRID -->
-      <section class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+      <!-- Landscape 12-col layout: Inputs | Outputs+Anatomy+Summary | Charts -->
+      <section class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
 
         <!-- Inputs -->
-        <article class="lg:col-span-3 xp-card p-6 space-y-5">
-          <h2 class="xp-subhead text-2xl">Inputs</h2>
+        <article class="lg:col-span-5 xp-card p-4 space-y-3">
+          <h2 class="xp-subhead text-lg">Inputs</h2>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div class="grid grid-cols-2 gap-x-4 gap-y-3">
 
             <label class="block">
               <span class="xp-eyebrow text-[10px] text-xp-mid-grey">Process runtime</span>
-              <p class="xp-subhead text-2xl num mt-0.5 leading-tight"><span id="runtimeVal">5.0</span> <span class="text-xp-mid-grey text-base font-normal">min</span></p>
-              <input id="runtimeMinutes" type="range" min="0.5" max="120" step="0.5" value="5" class="w-full mt-2" />
-              <div class="flex justify-between text-[10px] text-xp-mid-grey num">
-                <span>0.5 min</span><span>60 min</span><span>120 min</span>
+              <p class="xp-subhead text-base num mt-0.5 leading-tight"><span id="runtimeVal">5.0</span> <span class="text-xp-mid-grey text-xs font-normal">min</span></p>
+              <input id="runtimeMinutes" type="range" min="0.5" max="120" step="0.5" value="5" class="w-full mt-1" />
+              <div class="flex justify-between text-[9px] text-xp-mid-grey num">
+                <span>0.5</span><span>60</span><span>120 min</span>
               </div>
             </label>
 
             <label class="block">
               <span class="xp-eyebrow text-[10px] text-xp-mid-grey">Run frequency</span>
-              <p class="xp-subhead text-2xl num mt-0.5 leading-tight">every <span id="frequencyVal">30</span> <span class="text-xp-mid-grey text-base font-normal">min</span> <span class="text-xp-grey font-normal">·</span> <span id="runsPerDayVal">48</span>× <span class="text-xp-mid-grey text-base font-normal">/ day</span></p>
-              <input id="frequencySlider" type="range" min="0" max="1000" step="1" value="316" class="w-full mt-2" />
-              <div class="flex justify-between text-[10px] text-xp-mid-grey num">
-                <span>5 min (288×/day)</span><span>1 hr (24×)</span><span>1 day (1×)</span>
+              <p class="xp-subhead text-base num mt-0.5 leading-tight">every <span id="frequencyVal">30</span><span class="text-xp-mid-grey text-xs font-normal">min</span> <span class="text-xp-grey font-normal">·</span> <span id="runsPerDayVal">48</span>×<span class="text-xp-mid-grey text-xs font-normal">/d</span></p>
+              <input id="frequencySlider" type="range" min="0" max="1000" step="1" value="316" class="w-full mt-1" />
+              <div class="flex justify-between text-[9px] text-xp-mid-grey num">
+                <span>5m (288×)</span><span>1h (24×)</span><span>1d (1×)</span>
               </div>
             </label>
 
             <label class="block">
               <span class="xp-eyebrow text-[10px] text-xp-mid-grey">Warehouse size</span>
-              <p class="xp-subhead text-2xl num mt-0.5 leading-tight"><span id="warehouseSizeLabel">Small</span> <span class="text-xp-mid-grey text-base font-normal">(<span id="warehouseSizeCph">2</span> credits/hr)</span></p>
-              <input id="warehouseSize" type="range" min="0" max="6" step="1" value="1" class="w-full mt-2" />
-              <div class="relative h-4 mt-1 mx-[8px] text-[10px] text-xp-mid-grey num">
+              <p class="xp-subhead text-base num mt-0.5 leading-tight"><span id="warehouseSizeLabel">Small</span> <span class="text-xp-mid-grey text-xs font-normal">(<span id="warehouseSizeCph">2</span> c/h)</span></p>
+              <input id="warehouseSize" type="range" min="0" max="6" step="1" value="1" class="w-full mt-1" />
+              <div class="relative h-3 mt-0.5 mx-[8px] text-[9px] text-xp-mid-grey num">
                 <span class="absolute -translate-x-1/2" style="left:0%">XS</span>
                 <span class="absolute -translate-x-1/2" style="left:16.6667%">S</span>
                 <span class="absolute -translate-x-1/2" style="left:33.3333%">M</span>
@@ -193,7 +195,7 @@
             <label class="block">
               <span class="xp-eyebrow text-[10px] text-xp-mid-grey">Warehouse generation</span>
               <select id="generation"
-                class="w-full mt-1 border border-xp-light-grey rounded-xp px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-xp-purple">
+                class="w-full mt-1 border border-xp-light-grey rounded-xp px-2 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-xp-purple">
                 <option value="1">Gen1  Standard (1.00×)</option>
                 <option value="1.25">Gen2  Standard Gen2 (1.25×)</option>
               </select>
@@ -201,143 +203,133 @@
 
             <label class="block">
               <span class="xp-eyebrow text-[10px] text-xp-mid-grey">Auto-suspend</span>
-              <p class="xp-subhead text-2xl num mt-0.5 leading-tight"><span id="autosuspendVal">5</span> <span class="text-xp-mid-grey text-base font-normal">sec</span></p>
-              <input id="autosuspendSeconds" type="range" min="0" max="600" step="5" value="5" class="w-full mt-2" />
-              <div class="flex justify-between text-[10px] text-xp-mid-grey num">
-                <span>0 s</span><span>60 s</span><span>600 s</span>
+              <p class="xp-subhead text-base num mt-0.5 leading-tight"><span id="autosuspendVal">5</span> <span class="text-xp-mid-grey text-xs font-normal">sec</span></p>
+              <input id="autosuspendSeconds" type="range" min="0" max="600" step="5" value="5" class="w-full mt-1" />
+              <div class="flex justify-between text-[9px] text-xp-mid-grey num">
+                <span>0s</span><span>60s</span><span>600s</span>
               </div>
             </label>
 
             <label class="block">
               <span class="xp-eyebrow text-[10px] text-xp-mid-grey">Credit price</span>
-              <p class="xp-subhead text-2xl num mt-0.5 leading-tight">$<span id="creditCostVal">3.00</span> <span class="text-xp-mid-grey text-base font-normal">/ credit</span></p>
-              <input id="creditCost" type="range" min="1" max="6" step="0.05" value="3.00" class="w-full mt-2" />
-              <div class="flex justify-between text-[10px] text-xp-mid-grey num">
-                <span>$1.00 Std</span><span>$3.00 Ent</span><span>$6.00 VPS+</span>
+              <p class="xp-subhead text-base num mt-0.5 leading-tight">$<span id="creditCostVal">3.00</span> <span class="text-xp-mid-grey text-xs font-normal">/ credit</span></p>
+              <input id="creditCost" type="range" min="1" max="6" step="0.05" value="3.00" class="w-full mt-1" />
+              <div class="flex justify-between text-[9px] text-xp-mid-grey num">
+                <span>$1 Std</span><span>$3 Ent</span><span>$6 VPS+</span>
               </div>
             </label>
 
-            <label class="block sm:col-span-2">
+            <label class="block col-span-2">
               <span class="xp-eyebrow text-[10px] text-xp-mid-grey">Speedup per size step</span>
-              <p class="xp-subhead text-2xl num mt-0.5 leading-tight"><span id="speedupVal">1.70</span><span class="text-xp-mid-grey text-base font-normal">×</span></p>
-              <input id="speedupFactor" type="range" min="1.0" max="2.0" step="0.05" value="1.7" class="w-full mt-2" />
-              <div class="flex justify-between text-[10px] text-xp-mid-grey num">
+              <p class="xp-subhead text-base num mt-0.5 leading-tight"><span id="speedupVal">1.70</span><span class="text-xp-mid-grey text-xs font-normal">×</span></p>
+              <input id="speedupFactor" type="range" min="1.0" max="2.0" step="0.05" value="1.7" class="w-full mt-1" />
+              <div class="flex justify-between text-[9px] text-xp-mid-grey num">
                 <span>1.0× (no scaling)</span><span>1.7× typical dbt</span><span>2.0× perfect</span>
               </div>
             </label>
 
           </div>
 
-          <p class="text-xs text-xp-dark-grey pt-2 border-t border-xp-light-grey-tint-1">
-            Billing model: per-second after a <span class="font-bold">60-second minimum</span>
-            each time the warehouse resumes. Each run is charged for
-            <span class="font-mono">runtime + auto-suspend idle</span>, then idles down.
+          <p class="text-[11px] text-xp-dark-grey pt-2 border-t border-xp-light-grey-tint-1 leading-snug">
+            Per-second billing after a <span class="font-bold">60s minimum</span> per resume. Each run bills <span class="font-mono">runtime + auto-suspend idle</span>.
           </p>
         </article>
 
-        <!-- Outputs -->
-        <article class="lg:col-span-2 xp-card xp-card--hero p-6 space-y-5 text-white">
-          <h2 class="xp-subhead text-2xl text-white">Monthly cost <span class="text-white/70 text-base font-normal">(approx.)</span></h2>
+        <!-- Middle column: Outputs hero + Anatomy + Summary stacked -->
+        <div class="lg:col-span-3 space-y-4">
+          <article class="xp-card xp-card--hero p-4 space-y-2 text-white">
+            <h2 class="xp-subhead text-base text-white">Monthly cost <span class="text-white/70 text-xs font-normal">(approx.)</span></h2>
 
-          <div>
-            <p class="xp-eyebrow text-[10px] text-white/80">credits / month</p>
-            <p id="outCredits" class="num xp-display text-5xl leading-none mt-1 text-white"></p>
-          </div>
-
-          <div>
-            <p class="xp-eyebrow text-[10px] text-white/80">USD / month</p>
-            <p id="outUsd" class="num xp-display text-5xl leading-none mt-1" style="color: var(--xp-lime)"></p>
-          </div>
-
-          <div class="grid grid-cols-2 gap-3 pt-3 border-t border-white/30 text-sm">
             <div>
-              <p class="xp-eyebrow text-[10px] text-white/80">runs / month</p>
-              <p id="outRuns" class="num text-lg text-white"></p>
+              <p class="xp-eyebrow text-[9px] text-white/80">credits / month</p>
+              <p id="outCredits" class="num xp-display text-3xl leading-none mt-0.5 text-white"></p>
             </div>
+
             <div>
-              <p class="xp-eyebrow text-[10px] text-white/80">billed sec / run</p>
-              <p id="outBilledSec" class="num text-lg text-white"></p>
+              <p class="xp-eyebrow text-[9px] text-white/80">USD / month</p>
+              <p id="outUsd" class="num xp-display text-3xl leading-none mt-0.5" style="color: var(--xp-lime)"></p>
             </div>
-            <div>
-              <p class="xp-eyebrow text-[10px] text-white/80">credits / run</p>
-              <p id="outCreditsPerRun" class="num text-lg text-white"></p>
+
+            <div class="grid grid-cols-2 gap-2 pt-2 border-t border-white/30 text-xs">
+              <div>
+                <p class="xp-eyebrow text-[9px] text-white/80">runs / month</p>
+                <p id="outRuns" class="num text-sm text-white"></p>
+              </div>
+              <div>
+                <p class="xp-eyebrow text-[9px] text-white/80">billed sec / run</p>
+                <p id="outBilledSec" class="num text-sm text-white"></p>
+              </div>
+              <div>
+                <p class="xp-eyebrow text-[9px] text-white/80">credits / run</p>
+                <p id="outCreditsPerRun" class="num text-sm text-white"></p>
+              </div>
+              <div>
+                <p class="xp-eyebrow text-[9px] text-white/80">$ / run</p>
+                <p id="outUsdPerRun" class="num text-sm text-white"></p>
+              </div>
             </div>
-            <div>
-              <p class="xp-eyebrow text-[10px] text-white/80">$ / run</p>
-              <p id="outUsdPerRun" class="num text-lg text-white"></p>
+          </article>
+
+          <!-- Anatomy of one run (compact) -->
+          <article class="xp-card p-4 space-y-2">
+            <h2 class="xp-subhead text-base">Anatomy of one run</h2>
+            <div class="flex flex-wrap gap-2 text-[10px] text-xp-dark-grey">
+              <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-sm" style="background:var(--xp-purple)"></span>Runtime</span>
+              <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-sm" style="background:var(--xp-lemon)"></span>Idle</span>
+              <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-sm" style="background:var(--xp-pink)"></span>60s pad</span>
             </div>
-          </div>
-        </article>
-      </section>
+            <div class="relative h-12 w-full rounded-xp border border-xp-light-grey overflow-hidden bg-xp-light-grey-tint-2">
+              <div id="barRuntime" class="absolute inset-y-0 left-0 flex items-center justify-center text-white text-[10px] uppercase tracking-wider overflow-hidden whitespace-nowrap" style="background:var(--xp-purple)"><span id="lblRuntime">runtime</span></div>
+              <div id="barIdle"    class="absolute inset-y-0 flex items-center justify-center text-xp-darkest-grey text-[10px] uppercase tracking-wider overflow-hidden whitespace-nowrap" style="background:var(--xp-lemon)"><span id="lblIdle">idle</span></div>
+              <div id="barMinPad"  class="absolute inset-y-0 flex items-center justify-center text-white text-[10px] uppercase tracking-wider overflow-hidden whitespace-nowrap" style="background:var(--xp-pink)"><span id="lblPad">pad</span></div>
+            </div>
+            <div class="grid grid-cols-3 text-[10px] text-xp-dark-grey num">
+              <span id="legendRuntime">runtime: </span>
+              <span id="legendIdle">idle: </span>
+              <span id="legendPad" style="color: var(--xp-pink)">pad: </span>
+            </div>
+          </article>
 
-      <!-- ANATOMY OF A RUN -->
-      <section class="xp-card p-6 space-y-4">
-        <h2 class="xp-subhead text-2xl">Anatomy of one run</h2>
-        <p class="text-sm text-xp-dark-grey">
-          Billed time per run = runtime + auto-suspend idle, with a 60-second minimum applied to the resume cycle.
-        </p>
-        <div class="flex flex-wrap gap-4 text-xs text-xp-dark-grey">
-          <span class="flex items-center gap-2"><span class="inline-block w-3 h-3 rounded-sm" style="background:var(--xp-purple)"></span>Runtime <span class="text-xp-mid-grey">&mdash; query executing</span></span>
-          <span class="flex items-center gap-2"><span class="inline-block w-3 h-3 rounded-sm" style="background:var(--xp-lemon)"></span>Idle <span class="text-xp-mid-grey">&mdash; warehouse waiting before auto-suspend</span></span>
-          <span class="flex items-center gap-2"><span class="inline-block w-3 h-3 rounded-sm" style="background:var(--xp-pink)"></span>60s min pad <span class="text-xp-mid-grey">&mdash; billed even when run + idle &lt; 60s</span></span>
-        </div>
-        <div class="relative h-20 w-full rounded-xp border border-xp-light-grey overflow-hidden bg-xp-light-grey-tint-2">
-          <div id="barRuntime" class="absolute inset-y-0 left-0 flex items-center justify-center text-white text-xs uppercase tracking-wider overflow-hidden whitespace-nowrap" style="background:var(--xp-purple)"><span id="lblRuntime">runtime</span></div>
-          <div id="barIdle"    class="absolute inset-y-0 flex items-center justify-center text-xp-darkest-grey text-xs uppercase tracking-wider overflow-hidden whitespace-nowrap" style="background:var(--xp-lemon)"><span id="lblIdle">idle</span></div>
-          <div id="barMinPad"  class="absolute inset-y-0 flex items-center justify-center text-white text-xs uppercase tracking-wider overflow-hidden whitespace-nowrap" style="background:var(--xp-pink)"><span id="lblPad">pad</span></div>
-        </div>
-        <div class="grid grid-cols-3 text-xs text-xp-dark-grey num">
-          <span id="legendRuntime">runtime: </span>
-          <span id="legendIdle">idle: </span>
-          <span id="legendPad" style="color: var(--xp-pink)">pad: </span>
-        </div>
-      </section>
-
-      <!-- TIME VS COST TRADE-OFF -->
-      <section class="xp-card p-6 space-y-3">
-        <h2 class="xp-subhead text-2xl">Time vs cost across warehouse sizes <span class="text-xp-mid-grey text-base font-normal">(approx.)</span></h2>
-        <p class="text-sm text-xp-dark-grey">
-          Holding everything else constant, project the same workload onto each warehouse size using a
-          <span class="font-bold">speedup factor of <span id="curveSpeedup" class="num">1.70</span>×</span> per step.
-          Runtime drops, but credits per run usually <em>rise</em> &mdash; the cost of saving wall-clock.
-        </p>
-
-        <div class="flex flex-wrap gap-4 text-xs text-xp-dark-grey">
-          <span class="flex items-center gap-2"><span class="inline-block w-4 h-[3px] rounded" style="background:var(--xp-purple)"></span>Runtime <span class="text-xp-mid-grey">(left axis, sec)</span></span>
-          <span class="flex items-center gap-2"><span class="inline-block w-4 h-[3px] rounded" style="background:var(--xp-teal-shade)"></span>Credits / run <span class="text-xp-mid-grey">(right axis)</span></span>
-          <span class="flex items-center gap-2"><span class="inline-block w-3 h-3 rounded-full border" style="background:var(--xp-lime); border-color:var(--xp-lime-shade)"></span>Currently selected size</span>
+          <!-- Summary -->
+          <article class="rounded-xp p-4 space-y-1" style="background: var(--xp-lime-tint-2); border: 1px solid var(--xp-lime);">
+            <h2 class="xp-subhead text-base">Summary</h2>
+            <p id="summary" class="text-xs text-xp-darkest-grey leading-relaxed"></p>
+          </article>
         </div>
 
-        <div class="overflow-x-auto">
-          <svg id="tradeoffChart" viewBox="0 0 760 320" class="w-full h-[320px]" font-family="'Poppins', system-ui, sans-serif"></svg>
-        </div>
-      </section>
+        <!-- Right column: Two charts stacked -->
+        <div class="lg:col-span-4 space-y-4">
+          <article class="xp-card p-4 space-y-2">
+            <div class="flex items-baseline justify-between gap-2 flex-wrap">
+              <h2 class="xp-subhead text-base">Time vs cost <span class="text-xp-mid-grey text-xs font-normal">across sizes</span></h2>
+              <span class="text-[10px] text-xp-dark-grey">speedup <span class="num font-bold"><span id="curveSpeedup">1.70</span>×</span>/step</span>
+            </div>
+            <div class="flex flex-wrap gap-3 text-[10px] text-xp-dark-grey">
+              <span class="flex items-center gap-1"><span class="inline-block w-3 h-[3px] rounded" style="background:var(--xp-purple)"></span>Runtime <span class="text-xp-mid-grey">(L, sec)</span></span>
+              <span class="flex items-center gap-1"><span class="inline-block w-3 h-[3px] rounded" style="background:var(--xp-teal-shade)"></span>Credits/run <span class="text-xp-mid-grey">(R)</span></span>
+              <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-full border" style="background:var(--xp-lime); border-color:var(--xp-lime-shade)"></span>Selected</span>
+            </div>
+            <svg id="tradeoffChart" viewBox="0 0 760 320" class="w-full" style="max-height:240px" font-family="'Poppins', system-ui, sans-serif"></svg>
+          </article>
 
-      <!-- MONTHLY COST + PER-RUN RUNTIME BY SIZE -->
-      <section class="xp-card p-6 space-y-3">
-        <h2 class="xp-subhead text-2xl">Monthly cost &amp; per-run pipeline runtime by warehouse size <span class="text-xp-mid-grey text-base font-normal">(approx.)</span></h2>
-        <p class="text-sm text-xp-dark-grey">
-          Same workload, same frequency, projected onto each size at <span class="num"><span id="curveSpeedup2">1.70</span>×</span> per-step speedup.
-          Left axis is USD per month; right axis is pipeline runtime per run (minutes).
-        </p>
-        <div class="flex flex-wrap gap-4 text-xs text-xp-dark-grey">
-          <span class="flex items-center gap-2"><span class="inline-block w-4 h-[3px] rounded" style="background:var(--xp-teal-shade)"></span>USD / month <span class="text-xp-mid-grey">(left axis)</span></span>
-          <span class="flex items-center gap-2"><span class="inline-block w-4 h-[3px] rounded" style="background:var(--xp-pink)"></span>Runtime / run <span class="text-xp-mid-grey">(right axis, min)</span></span>
-          <span class="flex items-center gap-2"><span class="inline-block w-3 h-3 rounded-full border" style="background:var(--xp-lime); border-color:var(--xp-lime-shade)"></span>Currently selected size</span>
-        </div>
-        <div class="overflow-x-auto">
-          <svg id="monthlyChart" viewBox="0 0 760 300" class="w-full h-[300px]" font-family="'Poppins', system-ui, sans-serif"></svg>
+          <article class="xp-card p-4 space-y-2">
+            <div class="flex items-baseline justify-between gap-2 flex-wrap">
+              <h2 class="xp-subhead text-base">Monthly $ &amp; runtime <span class="text-xp-mid-grey text-xs font-normal">by size</span></h2>
+              <span class="text-[10px] text-xp-dark-grey">speedup <span class="num font-bold"><span id="curveSpeedup2">1.70</span>×</span>/step</span>
+            </div>
+            <div class="flex flex-wrap gap-3 text-[10px] text-xp-dark-grey">
+              <span class="flex items-center gap-1"><span class="inline-block w-3 h-[3px] rounded" style="background:var(--xp-teal-shade)"></span>USD/mo <span class="text-xp-mid-grey">(L)</span></span>
+              <span class="flex items-center gap-1"><span class="inline-block w-3 h-[3px] rounded" style="background:var(--xp-pink)"></span>Runtime <span class="text-xp-mid-grey">(R, min)</span></span>
+              <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-full border" style="background:var(--xp-lime); border-color:var(--xp-lime-shade)"></span>Selected</span>
+            </div>
+            <svg id="monthlyChart" viewBox="0 0 760 300" class="w-full" style="max-height:240px" font-family="'Poppins', system-ui, sans-serif"></svg>
+          </article>
         </div>
       </section>
 
-      <section class="rounded-xp p-6 space-y-3" style="background: var(--xp-lime-tint-2); border: 1px solid var(--xp-lime);">
-        <h2 class="xp-subhead text-2xl">Summary</h2>
-        <p id="summary" class="text-xp-darkest-grey leading-relaxed"></p>
-      </section>
-
-      <footer class="text-xs text-xp-mid-grey pt-4 border-t border-xp-light-grey space-y-1">
-        <p><span class="font-bold">Approximate estimate.</span> Excludes multi-cluster warehouse scaling, query queuing, cloud-services charges, and contract-specific pricing &mdash; all case-dependent.</p>
-        <p>Refs: Snowflake docs  <span class="font-mono">warehouses-gen2</span>, <span class="font-mono">cost-understanding-compute</span>.</p>
+      <footer class="text-[10px] text-xp-mid-grey pt-2 border-t border-xp-light-grey flex flex-wrap justify-between gap-2">
+        <p><span class="font-bold">Approximate.</span> Excludes multi-cluster scaling, queuing, cloud-services charges, contract-specific pricing.</p>
+        <p>Refs: Snowflake <span class="font-mono">warehouses-gen2</span>, <span class="font-mono">cost-understanding-compute</span>.</p>
       </footer>
     </main>
 

@@ -24,7 +24,7 @@ jobs:
       - name: Prepare site
         run: |
           mkdir -p _site
-          cp snowflake-credit-calculator.html _site/index.html
+          cp snowflake-credit-calculator-xplor.html _site/index.html
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
