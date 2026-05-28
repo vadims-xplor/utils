@@ -1,0 +1,620 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Snowflake Credit Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      .display {
+        font-family: "Helvetica Neue", Arial, system-ui, sans-serif;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+      }
+      .subhead {
+        font-family: "Helvetica Neue", Arial, system-ui, sans-serif;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      .eyebrow {
+        font-family: "Helvetica Neue", Arial, system-ui, sans-serif;
+        letter-spacing: 0.18em;
+      }
+      input[type="number"], select {
+        font-variant-numeric: tabular-nums;
+      }
+      .num { font-variant-numeric: tabular-nums; }
+      .seam { stroke-dasharray: 4 4; }
+    </style>
+  </head>
+  <body class="bg-stone-50 text-slate-900 font-sans">
+    <main class="max-w-5xl mx-auto px-6 py-12 space-y-10">
+
+      <header class="space-y-3">
+        <p class="eyebrow text-xs uppercase text-slate-500">FinOps · Compute · Approximate</p>
+        <h1 class="display text-5xl leading-[1.05]">Snowflake credit calculator <span class="text-slate-400">(approx.)</span></h1>
+        <p class="text-slate-600 max-w-2xl">
+          Estimate the monthly credits and dollar cost of a recurring workload
+          (e.g.&nbsp;a <span class="font-semibold">dbt build</span>) given its runtime, warehouse size,
+          generation, auto-suspend, and run frequency.
+        </p>
+        <p class="text-amber-800 bg-amber-50 border-l-4 border-amber-400 px-3 py-2 text-sm max-w-2xl">
+          <span class="font-semibold">Approximate.</span> Excludes multi-cluster scaling,
+          queueing, query suspends, cloud services charges, and contract-specific pricing &mdash;
+          these are case-dependent and out of scope.
+        </p>
+        <div class="flex flex-wrap gap-2 pt-1 text-xs">
+          <span class="px-2 py-1 rounded bg-emerald-100 text-emerald-800">per-second billing</span>
+          <span class="px-2 py-1 rounded bg-emerald-100 text-emerald-800">60s minimum / resume</span>
+          <span class="px-2 py-1 rounded bg-amber-100 text-amber-800">Gen2 = 1.25× Gen1</span>
+        </div>
+      </header>
+
+      <!-- INPUT + OUTPUT GRID -->
+      <section class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+
+        <!-- Inputs -->
+        <article class="lg:col-span-3 rounded-lg border border-slate-200 bg-white p-6 space-y-5">
+          <h2 class="subhead text-2xl">Inputs</h2>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+
+            <label class="block">
+              <span class="eyebrow text-[10px] uppercase text-slate-500">Process runtime</span>
+              <p class="subhead text-2xl num text-slate-900 mt-0.5 leading-tight"><span id="runtimeVal">5.0</span> <span class="text-slate-400 text-base font-normal">min</span></p>
+              <input id="runtimeMinutes" type="range" min="0.5" max="120" step="0.5" value="5"
+                class="w-full mt-2 accent-indigo-600" />
+              <div class="flex justify-between text-[10px] text-slate-400 num">
+                <span>0.5 min</span>
+                <span>60 min</span>
+                <span>120 min</span>
+              </div>
+            </label>
+
+            <label class="block">
+              <span class="eyebrow text-[10px] uppercase text-slate-500">Run frequency</span>
+              <p class="subhead text-2xl num text-slate-900 mt-0.5 leading-tight">every <span id="frequencyVal">30</span> <span class="text-slate-400 text-base font-normal">min</span> <span class="text-slate-300 font-normal">·</span> <span id="runsPerDayVal">48</span>× <span class="text-slate-400 text-base font-normal">/ day</span></p>
+              <input id="frequencySlider" type="range" min="0" max="1000" step="1" value="316"
+                class="w-full mt-2 accent-indigo-600" />
+              <div class="flex justify-between text-[10px] text-slate-400 num">
+                <span>5 min (288×/day)</span>
+                <span>1 hr (24×)</span>
+                <span>1 day (1×)</span>
+              </div>
+            </label>
+
+            <label class="block">
+              <span class="eyebrow text-[10px] uppercase text-slate-500">Warehouse size</span>
+              <p class="subhead text-2xl num text-slate-900 mt-0.5 leading-tight"><span id="warehouseSizeLabel">Small</span> <span class="text-slate-400 text-base font-normal">(<span id="warehouseSizeCph">2</span> credits/hr)</span></p>
+              <input id="warehouseSize" type="range" min="0" max="6" step="1" value="1"
+                class="w-full mt-2 accent-indigo-600" />
+              <div class="relative h-4 mt-1 mx-[8px] text-[10px] text-slate-400 num">
+                <span class="absolute -translate-x-1/2" style="left:0%">XS</span>
+                <span class="absolute -translate-x-1/2" style="left:16.6667%">S</span>
+                <span class="absolute -translate-x-1/2" style="left:33.3333%">M</span>
+                <span class="absolute -translate-x-1/2" style="left:50%">L</span>
+                <span class="absolute -translate-x-1/2" style="left:66.6667%">XL</span>
+                <span class="absolute -translate-x-1/2" style="left:83.3333%">2XL</span>
+                <span class="absolute -translate-x-1/2" style="left:100%">3XL</span>
+              </div>
+            </label>
+
+            <label class="block">
+              <span class="eyebrow text-[10px] uppercase text-slate-500">Warehouse generation</span>
+              <select id="generation"
+                class="w-full mt-1 border border-slate-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="1">Gen1 — Standard (1.00×)</option>
+                <option value="1.25">Gen2 — Standard Gen2 (1.25×)</option>
+              </select>
+            </label>
+
+            <label class="block">
+              <span class="eyebrow text-[10px] uppercase text-slate-500">Auto-suspend</span>
+              <p class="subhead text-2xl num text-slate-900 mt-0.5 leading-tight"><span id="autosuspendVal">5</span> <span class="text-slate-400 text-base font-normal">sec</span></p>
+              <input id="autosuspendSeconds" type="range" min="0" max="600" step="5" value="5"
+                class="w-full mt-2 accent-indigo-600" />
+              <div class="flex justify-between text-[10px] text-slate-400 num">
+                <span>0 s</span>
+                <span>60 s</span>
+                <span>600 s</span>
+              </div>
+            </label>
+
+            <label class="block">
+              <span class="eyebrow text-[10px] uppercase text-slate-500">Credit price</span>
+              <p class="subhead text-2xl num text-slate-900 mt-0.5 leading-tight">$<span id="creditCostVal">3.00</span> <span class="text-slate-400 text-base font-normal">/ credit</span></p>
+              <input id="creditCost" type="range" min="1" max="6" step="0.05" value="3.00"
+                class="w-full mt-2 accent-indigo-600" />
+              <div class="flex justify-between text-[10px] text-slate-400 num">
+                <span>$1.00 Std</span>
+                <span>$3.00 Ent</span>
+                <span>$6.00 VPS+</span>
+              </div>
+            </label>
+
+            <label class="block sm:col-span-2">
+              <span class="eyebrow text-[10px] uppercase text-slate-500">Speedup per size step</span>
+              <p class="subhead text-2xl num text-slate-900 mt-0.5 leading-tight"><span id="speedupVal">1.70</span><span class="text-slate-400 text-base font-normal">×</span></p>
+              <input id="speedupFactor" type="range" min="1.0" max="2.0" step="0.05" value="1.7"
+                class="w-full mt-2 accent-indigo-600" />
+              <div class="flex justify-between text-[10px] text-slate-400 num">
+                <span>1.0× (no scaling)</span>
+                <span>1.7× typical dbt</span>
+                <span>2.0× perfect</span>
+              </div>
+            </label>
+
+          </div>
+
+          <p class="text-xs text-slate-500 pt-2 border-t border-slate-100">
+            Billing model: per-second after a <span class="font-semibold">60-second minimum</span>
+            each time the warehouse resumes. Each run is charged for
+            <span class="font-mono">runtime + auto-suspend idle</span>, then idles down.
+          </p>
+        </article>
+
+        <!-- Outputs -->
+        <article class="lg:col-span-2 rounded-lg border border-slate-200 bg-slate-900 text-slate-50 p-6 space-y-5">
+          <h2 class="subhead text-2xl">Monthly cost <span class="text-slate-400 text-base font-normal">(approx.)</span></h2>
+
+          <div>
+            <p class="eyebrow text-[10px] uppercase text-slate-400">credits / month</p>
+            <p id="outCredits" class="num display text-5xl leading-none mt-1">—</p>
+          </div>
+
+          <div>
+            <p class="eyebrow text-[10px] uppercase text-slate-400">USD / month</p>
+            <p id="outUsd" class="num display text-5xl leading-none mt-1 text-emerald-300">—</p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 pt-3 border-t border-slate-700 text-sm">
+            <div>
+              <p class="eyebrow text-[10px] uppercase text-slate-400">runs / month</p>
+              <p id="outRuns" class="num text-lg">—</p>
+            </div>
+            <div>
+              <p class="eyebrow text-[10px] uppercase text-slate-400">billed sec / run</p>
+              <p id="outBilledSec" class="num text-lg">—</p>
+            </div>
+            <div>
+              <p class="eyebrow text-[10px] uppercase text-slate-400">credits / run</p>
+              <p id="outCreditsPerRun" class="num text-lg">—</p>
+            </div>
+            <div>
+              <p class="eyebrow text-[10px] uppercase text-slate-400">$ / run</p>
+              <p id="outUsdPerRun" class="num text-lg">—</p>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <!-- ANATOMY OF A RUN -->
+      <section class="rounded-lg border border-slate-200 bg-white p-6 space-y-4">
+        <h2 class="subhead text-2xl">Anatomy of one run</h2>
+        <p class="text-sm text-slate-600">
+          Billed time per run = runtime + auto-suspend idle, with a 60-second minimum applied to the resume cycle.
+        </p>
+        <div class="flex flex-wrap gap-4 text-xs text-slate-700">
+          <span class="flex items-center gap-2"><span class="inline-block w-3 h-3 rounded-sm bg-indigo-500/80"></span>Runtime <span class="text-slate-500">&mdash; query executing</span></span>
+          <span class="flex items-center gap-2"><span class="inline-block w-3 h-3 rounded-sm bg-amber-300/70"></span>Idle <span class="text-slate-500">&mdash; warehouse waiting before auto-suspend</span></span>
+          <span class="flex items-center gap-2"><span class="inline-block w-3 h-3 rounded-sm bg-rose-300/60"></span>60s min pad <span class="text-slate-500">&mdash; billed even when run + idle &lt; 60s</span></span>
+        </div>
+        <div class="relative h-20 w-full rounded border border-slate-200 overflow-hidden bg-stone-50">
+          <div id="barRuntime"   class="absolute inset-y-0 left-0 bg-indigo-500/80 flex items-center justify-center text-white text-xs uppercase tracking-wider overflow-hidden whitespace-nowrap"><span id="lblRuntime">runtime</span></div>
+          <div id="barIdle"      class="absolute inset-y-0 bg-amber-300/70 flex items-center justify-center text-amber-900 text-xs uppercase tracking-wider overflow-hidden whitespace-nowrap"><span id="lblIdle">idle</span></div>
+          <div id="barMinPad"    class="absolute inset-y-0 bg-rose-300/60 flex items-center justify-center text-rose-900 text-xs uppercase tracking-wider overflow-hidden whitespace-nowrap"><span id="lblPad">pad</span></div>
+        </div>
+        <div class="grid grid-cols-3 text-xs text-slate-500 num">
+          <span id="legendRuntime">runtime: —</span>
+          <span id="legendIdle">idle: —</span>
+          <span id="legendPad" class="text-rose-700">pad: —</span>
+        </div>
+      </section>
+
+      <!-- TIME VS COST TRADE-OFF -->
+      <section class="rounded-lg border border-slate-200 bg-white p-6 space-y-3">
+        <h2 class="subhead text-2xl">Time vs cost across warehouse sizes <span class="text-slate-400 text-base font-normal">(approx.)</span></h2>
+        <p class="text-sm text-slate-600">
+          Holding everything else constant, project the same workload onto each warehouse size using a
+          <span class="font-semibold">speedup factor of <span id="curveSpeedup" class="num">1.70</span>×</span> per step.
+          Runtime drops, but credits per run usually <em>rise</em> &mdash; the cost of saving wall-clock.
+        </p>
+
+        <div class="flex flex-wrap gap-4 text-xs text-slate-700">
+          <span class="flex items-center gap-2"><span class="inline-block w-4 h-[3px] bg-indigo-600 rounded"></span>Runtime <span class="text-slate-500">(left axis, sec)</span></span>
+          <span class="flex items-center gap-2"><span class="inline-block w-4 h-[3px] bg-emerald-600 rounded"></span>Credits / run <span class="text-slate-500">(right axis)</span></span>
+          <span class="flex items-center gap-2"><span class="inline-block w-3 h-3 rounded-full bg-amber-400 border border-amber-600"></span>Currently selected size</span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <svg id="tradeoffChart" viewBox="0 0 760 320" class="w-full h-[320px]" font-family="'Helvetica Neue', Arial, system-ui, sans-serif"></svg>
+        </div>
+      </section>
+
+      <!-- MONTHLY COST + PER-RUN RUNTIME BY SIZE -->
+      <section class="rounded-lg border border-slate-200 bg-white p-6 space-y-3">
+        <h2 class="subhead text-2xl">Monthly cost &amp; per-run pipeline runtime by warehouse size <span class="text-slate-400 text-base font-normal">(approx.)</span></h2>
+        <p class="text-sm text-slate-600">
+          Same workload, same frequency, projected onto each size at <span class="num"><span id="curveSpeedup2">1.70</span>×</span> per-step speedup.
+          Left axis is USD per month; right axis is pipeline runtime per run (minutes).
+        </p>
+        <div class="flex flex-wrap gap-4 text-xs text-slate-700">
+          <span class="flex items-center gap-2"><span class="inline-block w-4 h-[3px] bg-emerald-600 rounded"></span>USD / month <span class="text-slate-500">(left axis)</span></span>
+          <span class="flex items-center gap-2"><span class="inline-block w-4 h-[3px] bg-rose-500 rounded"></span>Runtime / run <span class="text-slate-500">(right axis, min)</span></span>
+          <span class="flex items-center gap-2"><span class="inline-block w-3 h-3 rounded-full bg-amber-400 border border-amber-600"></span>Currently selected size</span>
+        </div>
+        <div class="overflow-x-auto">
+          <svg id="monthlyChart" viewBox="0 0 760 300" class="w-full h-[300px]" font-family="'Helvetica Neue', Arial, system-ui, sans-serif"></svg>
+        </div>
+      </section>
+
+      <section class="rounded-lg border border-amber-300 bg-amber-50 p-6 space-y-3">
+        <h2 class="subhead text-2xl">Summary</h2>
+        <p id="summary" class="text-slate-800 leading-relaxed"></p>
+      </section>
+
+      <footer class="text-xs text-slate-500 pt-4 border-t border-slate-200 space-y-1">
+        <p><span class="font-semibold">Approximate estimate.</span> Excludes multi-cluster warehouse scaling, query queuing, cloud-services charges, and contract-specific pricing &mdash; all case-dependent.</p>
+        <p>Refs: Snowflake docs — <span class="font-mono">warehouses-gen2</span>, <span class="font-mono">cost-understanding-compute</span>.</p>
+      </footer>
+    </main>
+
+    <script>
+      const $ = (id) => document.getElementById(id);
+      const fmtNum  = (n, d = 2) => Number.isFinite(n) ? n.toLocaleString(undefined, { minimumFractionDigits: d, maximumFractionDigits: d }) : "—";
+      const fmtUsd  = (n) => Number.isFinite(n) ? n.toLocaleString(undefined, { style: "currency", currency: "USD" }) : "—";
+      const fmtInt  = (n) => Number.isFinite(n) ? Math.round(n).toLocaleString() : "—";
+
+      // Log-scale frequency: slider 0–1000 → 5–1440 minutes
+      const FREQ_MIN_MINS = 5, FREQ_MAX_MINS = 1440;
+      const LN_FREQ_LO = Math.log(FREQ_MIN_MINS);
+      const LN_FREQ_HI = Math.log(FREQ_MAX_MINS);
+      function freqFromSlider(v) {
+        const mins = Math.exp(LN_FREQ_LO + (v / 1000) * (LN_FREQ_HI - LN_FREQ_LO));
+        // snap to friendly increments
+        if (mins < 60)   return Math.max(1, Math.round(mins));
+        if (mins < 240)  return Math.round(mins / 5) * 5;
+        return Math.round(mins / 15) * 15;
+      }
+      function sliderFromFreq(mins) {
+        const clamped = Math.min(FREQ_MAX_MINS, Math.max(FREQ_MIN_MINS, mins));
+        return Math.round(1000 * (Math.log(clamped) - LN_FREQ_LO) / (LN_FREQ_HI - LN_FREQ_LO));
+      }
+      function getFreqMin() { return freqFromSlider(parseFloat($("frequencySlider").value) || 0); }
+
+      // Warehouse sizes indexed 0..6
+      const WH_SIZES = [
+        { label: "X-Small",  short: "XS",  cph: 1   },
+        { label: "Small",    short: "S",   cph: 2   },
+        { label: "Medium",   short: "M",   cph: 4   },
+        { label: "Large",    short: "L",   cph: 8   },
+        { label: "X-Large",  short: "XL",  cph: 16  },
+        { label: "2X-Large", short: "2XL", cph: 32  },
+        { label: "3X-Large", short: "3XL", cph: 64  },
+      ];
+      function getWh() {
+        const idx = Math.max(0, Math.min(WH_SIZES.length - 1, parseInt($("warehouseSize").value, 10) || 0));
+        return WH_SIZES[idx];
+      }
+
+      // Constraint: freqMin >= runtimeMin + INIT_PAD_MIN. Adjusting one slider pushes the other.
+      const INIT_PAD_MIN = 5;
+      function enforceConstraint(source) {
+        const runtimeMin = parseFloat($("runtimeMinutes").value) || 0;
+        const freqMin    = getFreqMin();
+        const minFreq    = runtimeMin + INIT_PAD_MIN;
+        if (freqMin >= minFreq) return;
+        if (source === "runtime") {
+          // push frequency up (cap at FREQ_MAX_MINS, then push runtime back if needed)
+          const newFreq = Math.min(FREQ_MAX_MINS, minFreq);
+          $("frequencySlider").value = sliderFromFreq(newFreq);
+          if (newFreq < minFreq) {
+            $("runtimeMinutes").value = Math.max(0.5, FREQ_MAX_MINS - INIT_PAD_MIN);
+          }
+        } else {
+          // frequency moved: push runtime down
+          $("runtimeMinutes").value = Math.max(0.5, freqMin - INIT_PAD_MIN);
+        }
+      }
+
+      function calc() {
+        const runtimeMin   = parseFloat($("runtimeMinutes").value) || 0;
+        const freqMin      = getFreqMin();
+        const wh           = getWh();
+        const baseCph      = wh.cph;
+        const genMult      = parseFloat($("generation").value) || 1;
+        const autosuspendS = parseFloat($("autosuspendSeconds").value) || 0;
+        const usdPerCredit = parseFloat($("creditCost").value) || 0;
+        const speedup      = parseFloat($("speedupFactor").value) || 1.7;
+
+        $("warehouseSizeLabel").textContent = wh.label;
+        $("warehouseSizeCph").textContent   = wh.cph;
+        $("speedupVal").textContent  = speedup.toFixed(2);
+        $("curveSpeedup").textContent = speedup.toFixed(2);
+        $("runtimeVal").textContent     = runtimeMin.toFixed(1);
+        $("frequencyVal").textContent   = fmtInt(freqMin);
+        $("runsPerDayVal").textContent  = freqMin > 0 ? fmtNum((24 * 60) / freqMin, 1) : "—";
+        $("autosuspendVal").textContent = fmtInt(autosuspendS);
+        $("creditCostVal").textContent  = usdPerCredit.toFixed(2);
+
+        const runtimeSec   = runtimeMin * 60;
+        const rawBilledSec = runtimeSec + autosuspendS;
+        const billedSec    = Math.max(60, rawBilledSec);
+        const minPadSec    = Math.max(0, 60 - rawBilledSec);
+
+        const cph          = baseCph * genMult;
+        const creditsPerRun = (billedSec / 3600) * cph;
+        const usdPerRun     = creditsPerRun * usdPerCredit;
+
+        const minutesPerMonth = 30 * 24 * 60; // 43,200
+        const runsPerMonth    = freqMin > 0 ? minutesPerMonth / freqMin : 0;
+
+        const monthlyCredits = creditsPerRun * runsPerMonth;
+        const monthlyUsd     = usdPerRun * runsPerMonth;
+
+        // OUTPUT cards
+        $("outCredits").textContent       = fmtNum(monthlyCredits, 1);
+        $("outUsd").textContent           = fmtUsd(monthlyUsd);
+        $("outRuns").textContent          = fmtInt(runsPerMonth);
+        $("outBilledSec").textContent     = fmtNum(billedSec, 0);
+        $("outCreditsPerRun").textContent = fmtNum(creditsPerRun, 4);
+        $("outUsdPerRun").textContent     = fmtUsd(usdPerRun);
+
+        // ANATOMY bar (proportional widths summing to 100%)
+        const total = billedSec || 1;
+        const runtimeW = (Math.min(runtimeSec, billedSec) / total) * 100;
+        const idleW    = (Math.min(autosuspendS, Math.max(0, billedSec - runtimeSec)) / total) * 100;
+        const padW     = (minPadSec / total) * 100;
+
+        $("barRuntime").style.width = runtimeW + "%";
+        $("barIdle").style.left     = runtimeW + "%";
+        $("barIdle").style.width    = idleW + "%";
+        $("barMinPad").style.left   = (runtimeW + idleW) + "%";
+        $("barMinPad").style.width  = padW + "%";
+
+        // hide in-bar labels when segment is too narrow to fit them
+        $("lblRuntime").style.display = runtimeW > 8 ? "" : "none";
+        $("lblIdle").style.display    = idleW    > 8 ? "" : "none";
+        $("lblPad").style.display     = padW     > 8 ? "" : "none";
+
+        $("legendRuntime").textContent = "runtime: " + fmtNum(runtimeSec, 0) + "s";
+        $("legendIdle").textContent    = "idle: " + fmtNum(autosuspendS, 0) + "s";
+        $("legendPad").textContent     = "pad: " + fmtNum(minPadSec, 0) + "s";
+
+        // SUMMARY
+        const sizeLabel = wh.label;
+        const genLabel  = genMult > 1 ? "Gen2" : "Gen1";
+        $("summary").innerHTML =
+          `A <b>${runtimeMin}-minute</b> job on a <b>${sizeLabel} ${genLabel}</b> warehouse ` +
+          `(<span class="num">${fmtNum(cph,2)}</span> credits/hr) ` +
+          `with <b>${autosuspendS}s</b> auto-suspend, run every <b>${freqMin} min</b>, ` +
+          `bills <span class="num">${fmtNum(billedSec,0)}s</span> per run ` +
+          `(${minPadSec > 0 ? `<span class="text-rose-700">incl. ${fmtNum(minPadSec,0)}s 60-second-minimum pad</span>` : "no min-pad"}). ` +
+          `That's <b><span class="num">${fmtInt(runsPerMonth)}</span></b> runs / month → ` +
+          `<b><span class="num">${fmtNum(monthlyCredits,1)}</span> credits</b> ≈ ` +
+          `<b class="text-emerald-700">${fmtUsd(monthlyUsd)}</b> at ${fmtUsd(usdPerCredit)}/credit.`;
+      }
+
+      $("runtimeMinutes").addEventListener("input", () => { enforceConstraint("runtime"); calc(); drawChart(); });
+      $("frequencySlider").addEventListener("input", () => { enforceConstraint("frequency"); calc(); drawChart(); });
+      ["warehouseSize","generation","autosuspendSeconds","creditCost","speedupFactor"]
+        .forEach(id => $(id).addEventListener("input", () => { calc(); drawChart(); }));
+
+      // ---- Trade-off chart ----
+      const SIZES = [
+        { label: "XS",  cph: 1   },
+        { label: "S",   cph: 2   },
+        { label: "M",   cph: 4   },
+        { label: "L",   cph: 8   },
+        { label: "XL",  cph: 16  },
+        { label: "2XL", cph: 32  },
+        { label: "3XL", cph: 64  },
+      ];
+
+      function drawChart() {
+        const runtimeMin   = parseFloat($("runtimeMinutes").value) || 0;
+        const baseCph      = getWh().cph;
+        const genMult      = parseFloat($("generation").value) || 1;
+        const autosuspendS = parseFloat($("autosuspendSeconds").value) || 0;
+        // (frequency read inside drawMonthly via getFreqMin)
+        const speedup      = parseFloat($("speedupFactor").value) || 1.7;
+
+        const anchorIdx    = SIZES.findIndex(s => s.cph === baseCph);
+        const anchorRuntimeSec = runtimeMin * 60;
+
+        // Project runtime + cost across sizes
+        const series = SIZES.map((s, i) => {
+          const runtime = anchorRuntimeSec * Math.pow(1 / speedup, i - anchorIdx);
+          const billed  = Math.max(60, runtime + autosuspendS);
+          const credits = (billed / 3600) * (s.cph * genMult);
+          return { ...s, idx: i, runtime, credits };
+        });
+
+        const maxRuntime = Math.max(...series.map(d => d.runtime));
+        const maxCredits = Math.max(...series.map(d => d.credits));
+
+        // SVG layout
+        const W = 760, H = 320;
+        const PAD = { l: 56, r: 56, t: 24, b: 44 };
+        const innerW = W - PAD.l - PAD.r;
+        const innerH = H - PAD.t - PAD.b;
+
+        const xOf = i => PAD.l + (i / (SIZES.length - 1)) * innerW;
+        const yRuntime = v => PAD.t + innerH - (v / (maxRuntime || 1)) * innerH;
+        const yCredits = v => PAD.t + innerH - (v / (maxCredits || 1)) * innerH;
+
+        const fmtSec = s => s >= 60 ? (s/60).toFixed(1) + "m" : s.toFixed(0) + "s";
+        const fmtCr  = c => c < 1 ? c.toFixed(3) : c.toFixed(2);
+
+        // grid (4 horizontal lines)
+        let svg = "";
+        for (let g = 0; g <= 4; g++) {
+          const y = PAD.t + (g / 4) * innerH;
+          svg += `<line x1="${PAD.l}" x2="${W - PAD.r}" y1="${y}" y2="${y}" stroke="#e2e8f0" stroke-width="1"/>`;
+        }
+
+        // left axis labels (runtime)
+        for (let g = 0; g <= 4; g++) {
+          const v = maxRuntime * (1 - g / 4);
+          const y = PAD.t + (g / 4) * innerH;
+          svg += `<text x="${PAD.l - 8}" y="${y + 4}" text-anchor="end" font-size="10" fill="#4f46e5">${fmtSec(v)}</text>`;
+        }
+        // right axis labels (credits)
+        for (let g = 0; g <= 4; g++) {
+          const v = maxCredits * (1 - g / 4);
+          const y = PAD.t + (g / 4) * innerH;
+          svg += `<text x="${W - PAD.r + 8}" y="${y + 4}" text-anchor="start" font-size="10" fill="#059669">${fmtCr(v)}</text>`;
+        }
+
+        // x-axis labels
+        SIZES.forEach((s, i) => {
+          const x = xOf(i);
+          const isAnchor = i === anchorIdx;
+          svg += `<text x="${x}" y="${H - PAD.b + 18}" text-anchor="middle" font-size="11" font-weight="${isAnchor ? 700 : 500}" fill="${isAnchor ? '#92400e' : '#475569'}">${s.label}</text>`;
+          svg += `<text x="${x}" y="${H - PAD.b + 32}" text-anchor="middle" font-size="9" fill="#94a3b8">${s.cph} c/h</text>`;
+        });
+
+        // axis titles
+        svg += `<text x="${PAD.l - 44}" y="${PAD.t + innerH/2}" transform="rotate(-90 ${PAD.l - 44} ${PAD.t + innerH/2})" text-anchor="middle" font-size="10" fill="#4f46e5" font-weight="700" letter-spacing="1.5">RUNTIME</text>`;
+        svg += `<text x="${W - PAD.r + 44}" y="${PAD.t + innerH/2}" transform="rotate(90 ${W - PAD.r + 44} ${PAD.t + innerH/2})" text-anchor="middle" font-size="10" fill="#059669" font-weight="700" letter-spacing="1.5">CREDITS / RUN</text>`;
+
+        // anchor marker (vertical band)
+        if (anchorIdx >= 0) {
+          svg += `<line x1="${xOf(anchorIdx)}" x2="${xOf(anchorIdx)}" y1="${PAD.t}" y2="${PAD.t + innerH}" stroke="#fbbf24" stroke-width="2" stroke-dasharray="4 3"/>`;
+        }
+
+        // Runtime polyline
+        const runtimePath = series.map((d,i) => `${xOf(i)},${yRuntime(d.runtime)}`).join(" ");
+        svg += `<polyline fill="none" stroke="#4f46e5" stroke-width="2.5" points="${runtimePath}"/>`;
+
+        // Credits polyline
+        const creditsPath = series.map((d,i) => `${xOf(i)},${yCredits(d.credits)}`).join(" ");
+        svg += `<polyline fill="none" stroke="#059669" stroke-width="2.5" points="${creditsPath}"/>`;
+
+        // Points + tooltip-on-hover labels
+        series.forEach((d, i) => {
+          const isAnchor = i === anchorIdx;
+          // runtime point
+          svg += `<circle cx="${xOf(i)}" cy="${yRuntime(d.runtime)}" r="${isAnchor ? 5 : 3.5}" fill="${isAnchor ? '#fbbf24' : '#4f46e5'}" stroke="#fff" stroke-width="${isAnchor ? 2 : 1}"/>`;
+          // credits point
+          svg += `<circle cx="${xOf(i)}" cy="${yCredits(d.credits)}" r="${isAnchor ? 5 : 3.5}" fill="${isAnchor ? '#fbbf24' : '#059669'}" stroke="#fff" stroke-width="${isAnchor ? 2 : 1}"/>`;
+          // anchor labels
+          if (isAnchor) {
+            svg += `<text x="${xOf(i)}" y="${yRuntime(d.runtime) - 10}" text-anchor="middle" font-size="10" font-weight="700" fill="#4f46e5">${fmtSec(d.runtime)}</text>`;
+            svg += `<text x="${xOf(i)}" y="${yCredits(d.credits) - 10}" text-anchor="middle" font-size="10" font-weight="700" fill="#059669">${fmtCr(d.credits)}</text>`;
+          }
+        });
+
+        $("tradeoffChart").innerHTML = svg;
+        drawMonthly(series, anchorIdx);
+      }
+
+      function drawMonthly(series, anchorIdx) {
+        const freqMin    = getFreqMin();
+        const usd        = parseFloat($("creditCost").value) || 0;
+        const speedup    = parseFloat($("speedupFactor").value) || 1.7;
+        $("curveSpeedup2").textContent = speedup.toFixed(2);
+        const runsPerMonth = freqMin > 0 ? (30 * 24 * 60) / freqMin : 0;
+
+        const data = series.map(d => ({
+          ...d,
+          monthlyUsd: d.credits * usd * runsPerMonth,
+          runtimeMin: d.runtime / 60, // per-run, raw runtime
+        }));
+        const maxUsd = Math.max(...data.map(d => d.monthlyUsd), 1);
+        const maxMin = Math.max(...data.map(d => d.runtimeMin), 0.01);
+
+        const W = 760, H = 300;
+        const PAD = { l: 64, r: 64, t: 24, b: 56 };
+        const innerW = W - PAD.l - PAD.r;
+        const innerH = H - PAD.t - PAD.b;
+
+        const xOf  = i => PAD.l + (i / (data.length - 1)) * innerW;
+        const yUsd = v => PAD.t + innerH - (v / maxUsd) * innerH;
+        const yMin = v => PAD.t + innerH - (v / maxMin) * innerH;
+
+        const fmtUsdShort = v => {
+          if (v >= 1000) return "$" + (v/1000).toFixed(1) + "k";
+          if (v >= 100)  return "$" + v.toFixed(0);
+          return "$" + v.toFixed(2);
+        };
+        const fmtMin = v => {
+          if (v >= 60) return (v / 60).toFixed(1) + "h";
+          if (v >= 1)  return v.toFixed(1) + "m";
+          return (v * 60).toFixed(0) + "s";
+        };
+
+        function smoothPath(pts) {
+          if (pts.length < 2) return "";
+          let d = `M ${pts[0][0]} ${pts[0][1]}`;
+          const t = 0.2;
+          for (let i = 0; i < pts.length - 1; i++) {
+            const p0 = pts[i - 1] || pts[i];
+            const p1 = pts[i];
+            const p2 = pts[i + 1];
+            const p3 = pts[i + 2] || p2;
+            const c1x = p1[0] + (p2[0] - p0[0]) * t;
+            const c1y = p1[1] + (p2[1] - p0[1]) * t;
+            const c2x = p2[0] - (p3[0] - p1[0]) * t;
+            const c2y = p2[1] - (p3[1] - p1[1]) * t;
+            d += ` C ${c1x} ${c1y}, ${c2x} ${c2y}, ${p2[0]} ${p2[1]}`;
+          }
+          return d;
+        }
+
+        let svg = "";
+
+        // grid + dual axis labels
+        for (let g = 0; g <= 4; g++) {
+          const y = PAD.t + (g / 4) * innerH;
+          svg += `<line x1="${PAD.l}" x2="${W - PAD.r}" y1="${y}" y2="${y}" stroke="#e2e8f0" stroke-width="1"/>`;
+          const vU = maxUsd * (1 - g / 4);
+          svg += `<text x="${PAD.l - 8}" y="${y + 4}" text-anchor="end" font-size="10" fill="#059669">${fmtUsdShort(vU)}</text>`;
+          const vM = maxMin * (1 - g / 4);
+          svg += `<text x="${W - PAD.r + 8}" y="${y + 4}" text-anchor="start" font-size="10" fill="#e11d48">${fmtMin(vM)}</text>`;
+        }
+
+        // anchor marker
+        if (anchorIdx >= 0) {
+          svg += `<line x1="${xOf(anchorIdx)}" x2="${xOf(anchorIdx)}" y1="${PAD.t}" y2="${PAD.t + innerH}" stroke="#fbbf24" stroke-width="2" stroke-dasharray="4 3"/>`;
+        }
+
+        // x labels
+        data.forEach((d, i) => {
+          const cx = xOf(i);
+          const isAnchor = i === anchorIdx;
+          svg += `<text x="${cx}" y="${H - PAD.b + 18}" text-anchor="middle" font-size="11" font-weight="${isAnchor ? 700 : 500}" fill="${isAnchor ? '#92400e' : '#475569'}">${d.label}</text>`;
+          svg += `<text x="${cx}" y="${H - PAD.b + 32}" text-anchor="middle" font-size="9" fill="#94a3b8">${d.cph} c/h</text>`;
+        });
+
+        // axis titles
+        svg += `<text x="${PAD.l - 50}" y="${PAD.t + innerH/2}" transform="rotate(-90 ${PAD.l - 50} ${PAD.t + innerH/2})" text-anchor="middle" font-size="10" fill="#059669" font-weight="700" letter-spacing="1.5">USD / MONTH</text>`;
+        svg += `<text x="${W - PAD.r + 50}" y="${PAD.t + innerH/2}" transform="rotate(90 ${W - PAD.r + 50} ${PAD.t + innerH/2})" text-anchor="middle" font-size="10" fill="#e11d48" font-weight="700" letter-spacing="1.5">RUNTIME / RUN</text>`;
+
+        // smooth lines
+        const usdPts = data.map((d,i) => [xOf(i), yUsd(d.monthlyUsd)]);
+        svg += `<path fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="${smoothPath(usdPts)}"/>`;
+        const minPts = data.map((d,i) => [xOf(i), yMin(d.runtimeMin)]);
+        svg += `<path fill="none" stroke="#e11d48" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="${smoothPath(minPts)}"/>`;
+
+        // points + anchor labels
+        data.forEach((d, i) => {
+          const isAnchor = i === anchorIdx;
+          svg += `<circle cx="${xOf(i)}" cy="${yUsd(d.monthlyUsd)}" r="${isAnchor ? 5 : 3.5}" fill="${isAnchor ? '#fbbf24' : '#059669'}" stroke="#fff" stroke-width="${isAnchor ? 2 : 1}"/>`;
+          svg += `<circle cx="${xOf(i)}" cy="${yMin(d.runtimeMin)}" r="${isAnchor ? 5 : 3.5}" fill="${isAnchor ? '#fbbf24' : '#e11d48'}" stroke="#fff" stroke-width="${isAnchor ? 2 : 1}"/>`;
+          if (isAnchor) {
+            svg += `<text x="${xOf(i)}" y="${yUsd(d.monthlyUsd) - 10}" text-anchor="middle" font-size="10" font-weight="700" fill="#059669">${fmtUsdShort(d.monthlyUsd)}</text>`;
+            svg += `<text x="${xOf(i)}" y="${yMin(d.runtimeMin) - 10}" text-anchor="middle" font-size="10" font-weight="700" fill="#e11d48">${fmtMin(d.runtimeMin)}</text>`;
+          }
+        });
+
+        // runs/month note
+        svg += `<text x="${W - PAD.r}" y="${H - 8}" text-anchor="end" font-size="10" fill="#94a3b8">${Math.round(runsPerMonth).toLocaleString()} runs / month</text>`;
+
+        $("monthlyChart").innerHTML = svg;
+      }
+
+      drawChart();
+      calc();
+    </script>
+  </body>
+</html>
