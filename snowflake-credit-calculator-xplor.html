@@ -32,6 +32,7 @@
                 'mid-grey': '#8C969F',
                 grey: '#B4BEC6',
                 pink: '#E44597',
+                'pink-shade': '#B81E72',
                 lemon: '#FFDA00',
               },
             },
@@ -59,6 +60,7 @@
         --xp-dark-grey: #545D63;
         --xp-mid-grey: #8C969F;
         --xp-pink: #E44597;
+        --xp-pink-shade: #B81E72;
         --xp-lemon: #FFDA00;
         --xp-white: #FFFFFF;
         --xp-radius: 10px;
@@ -102,6 +104,15 @@
 
       /* range input styled in Xplor purple */
       input[type="range"] { accent-color: var(--xp-purple); }
+
+      /* segmented generation toggle */
+      .gen-opt { color: var(--xp-dark-grey); cursor: pointer; }
+      .gen-opt:hover { background: var(--xp-white); }
+      .gen-opt[aria-checked="true"] {
+        background: var(--xp-purple);
+        box-shadow: 0 1px 2px rgba(0,0,0,.12);
+      }
+      .gen-opt[aria-checked="true"] span { color: var(--xp-white) !important; }
 
       .xp-card {
         background: var(--xp-white);
@@ -196,7 +207,7 @@
             <label class="block">
               <span class="xp-eyebrow text-[10px] text-xp-mid-grey">Process runtime</span>
               <p class="xp-subhead text-base num mt-0.5 leading-tight"><span id="runtimeVal">5.0</span> <span class="text-xp-mid-grey text-xs font-normal">min</span></p>
-              <input id="runtimeMinutes" type="range" min="0.5" max="120" step="0.5" value="5" class="w-full mt-1" />
+              <input id="runtimeMinutes" type="range" min="0.5" max="120" step="0.5" value="5" class="w-full mt-1" aria-label="Process runtime in minutes" />
               <div class="flex justify-between text-[9px] text-xp-mid-grey num">
                 <span>0.5</span><span>60</span><span>120 min</span>
               </div>
@@ -205,7 +216,7 @@
             <label class="block">
               <span class="xp-eyebrow text-[10px] text-xp-mid-grey">Run frequency</span>
               <p class="xp-subhead text-base num mt-0.5 leading-tight">every <span id="frequencyVal">30</span><span class="text-xp-mid-grey text-xs font-normal">min</span> <span class="text-xp-grey font-normal">·</span> <span id="runsPerDayVal">48</span>×<span class="text-xp-mid-grey text-xs font-normal">/d</span></p>
-              <input id="frequencySlider" type="range" min="0" max="1000" step="1" value="316" class="w-full mt-1" />
+              <input id="frequencySlider" type="range" min="0" max="1000" step="1" value="316" class="w-full mt-1" aria-label="Run frequency" />
               <div class="flex justify-between text-[9px] text-xp-mid-grey num">
                 <span>5m (288×)</span><span>1h (24×)</span><span>1d (1×)</span>
               </div>
@@ -214,7 +225,7 @@
             <label class="block">
               <span class="xp-eyebrow text-[10px] text-xp-mid-grey">Warehouse size</span>
               <p class="xp-subhead text-base num mt-0.5 leading-tight"><span id="warehouseSizeLabel">Small</span> <span class="text-xp-mid-grey text-xs font-normal">(<span id="warehouseSizeCph">2</span> c/h)</span></p>
-              <input id="warehouseSize" type="range" min="0" max="6" step="1" value="1" class="w-full mt-1" />
+              <input id="warehouseSize" type="range" min="0" max="6" step="1" value="1" class="w-full mt-1" aria-label="Warehouse size" />
               <div class="relative h-3 mt-0.5 mx-[8px] text-[9px] text-xp-mid-grey num">
                 <span class="absolute -translate-x-1/2" style="left:0%">XS</span>
                 <span class="absolute -translate-x-1/2" style="left:16.6667%">S</span>
@@ -228,17 +239,26 @@
 
             <label class="block">
               <span class="xp-eyebrow text-[10px] text-xp-mid-grey">Warehouse generation</span>
-              <select id="generation"
-                class="w-full mt-1 border border-xp-light-grey rounded-xp px-2 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-xp-purple">
-                <option value="1">Gen1  Standard (1.00×)</option>
-                <option value="1.25">Gen2  Standard Gen2 (1.25×)</option>
-              </select>
+              <input type="hidden" id="generation" value="1" />
+              <div id="generationToggle" role="radiogroup" aria-label="Warehouse generation"
+                class="mt-1 grid grid-cols-2 gap-1 p-1 rounded-xp bg-xp-light-grey-tint-1 border border-xp-light-grey">
+                <button type="button" data-value="1" role="radio" aria-checked="true"
+                  class="gen-opt rounded-xp px-2 py-1.5 text-sm leading-tight transition focus:outline-none focus:ring-2 focus:ring-xp-purple">
+                  <span class="font-bold block">Gen1</span>
+                  <span class="num text-xs text-xp-mid-grey">1.00×</span>
+                </button>
+                <button type="button" data-value="1.25" role="radio" aria-checked="false"
+                  class="gen-opt rounded-xp px-2 py-1.5 text-sm leading-tight transition focus:outline-none focus:ring-2 focus:ring-xp-purple">
+                  <span class="font-bold block">Gen2</span>
+                  <span class="num text-xs text-xp-mid-grey">1.25×</span>
+                </button>
+              </div>
             </label>
 
             <label class="block">
               <span class="xp-eyebrow text-[10px] text-xp-mid-grey">Auto-suspend</span>
               <p class="xp-subhead text-base num mt-0.5 leading-tight"><span id="autosuspendVal">5</span> <span class="text-xp-mid-grey text-xs font-normal">sec</span></p>
-              <input id="autosuspendSeconds" type="range" min="0" max="600" step="5" value="5" class="w-full mt-1" />
+              <input id="autosuspendSeconds" type="range" min="0" max="600" step="5" value="5" class="w-full mt-1" aria-label="Auto-suspend in seconds" />
               <div class="flex justify-between text-[9px] text-xp-mid-grey num">
                 <span>0s</span><span>60s</span><span>600s</span>
               </div>
@@ -247,7 +267,7 @@
             <label class="block">
               <span class="xp-eyebrow text-[10px] text-xp-mid-grey">Credit price</span>
               <p class="xp-subhead text-base num mt-0.5 leading-tight">$<span id="creditCostVal">3.00</span> <span class="text-xp-mid-grey text-xs font-normal">/ credit</span></p>
-              <input id="creditCost" type="range" min="1" max="6" step="0.05" value="3.00" class="w-full mt-1" />
+              <input id="creditCost" type="range" min="1" max="6" step="0.05" value="3.00" class="w-full mt-1" aria-label="Credit price in US dollars per credit" />
               <div class="flex justify-between text-[9px] text-xp-mid-grey num">
                 <span>$1 Std</span><span>$3 Ent</span><span>$6 VPS+</span>
               </div>
@@ -256,7 +276,7 @@
             <label class="block col-span-2">
               <span class="xp-eyebrow text-[10px] text-xp-mid-grey">Speedup per size step</span>
               <p class="xp-subhead text-base num mt-0.5 leading-tight"><span id="speedupVal">1.70</span><span class="text-xp-mid-grey text-xs font-normal">×</span></p>
-              <input id="speedupFactor" type="range" min="1.0" max="2.0" step="0.05" value="1.7" class="w-full mt-1" />
+              <input id="speedupFactor" type="range" min="1.0" max="2.0" step="0.05" value="1.7" class="w-full mt-1" aria-label="Speedup per warehouse size step" />
               <div class="flex justify-between text-[9px] text-xp-mid-grey num">
                 <span>1.0× (no scaling)</span><span>1.7× typical dbt</span><span>2.0× perfect</span>
               </div>
@@ -275,17 +295,17 @@
             <div class="flex flex-wrap gap-2 text-[10px] text-xp-dark-grey">
               <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-sm" style="background:var(--xp-purple)"></span>Runtime</span>
               <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-sm" style="background:var(--xp-lemon)"></span>Idle</span>
-              <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-sm" style="background:var(--xp-pink)"></span>60s pad</span>
+              <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-sm" style="background:var(--xp-pink-shade)"></span>60s pad</span>
             </div>
             <div class="relative h-12 w-full rounded-xp border border-xp-light-grey overflow-hidden bg-xp-light-grey-tint-2">
               <div id="barRuntime" class="absolute inset-y-0 left-0 flex items-center justify-center text-white text-[10px] uppercase tracking-wider overflow-hidden whitespace-nowrap" style="background:var(--xp-purple)"><span id="lblRuntime">runtime</span></div>
               <div id="barIdle"    class="absolute inset-y-0 flex items-center justify-center text-xp-darkest-grey text-[10px] uppercase tracking-wider overflow-hidden whitespace-nowrap" style="background:var(--xp-lemon)"><span id="lblIdle">idle</span></div>
-              <div id="barMinPad"  class="absolute inset-y-0 flex items-center justify-center text-white text-[10px] uppercase tracking-wider overflow-hidden whitespace-nowrap" style="background:var(--xp-pink)"><span id="lblPad">pad</span></div>
+              <div id="barMinPad"  class="absolute inset-y-0 flex items-center justify-center text-white text-[10px] uppercase tracking-wider overflow-hidden whitespace-nowrap" style="background:var(--xp-pink-shade)"><span id="lblPad">pad</span></div>
             </div>
             <div class="grid grid-cols-3 text-[10px] text-xp-dark-grey num">
               <span id="legendRuntime">runtime: </span>
               <span id="legendIdle">idle: </span>
-              <span id="legendPad" style="color: var(--xp-pink)">pad: </span>
+              <span id="legendPad" style="color: var(--xp-pink-shade)">pad: </span>
             </div>
           </article>
         </div>
@@ -299,7 +319,7 @@
             </div>
             <div class="flex flex-wrap gap-3 text-[10px] text-xp-dark-grey">
               <span class="flex items-center gap-1"><span class="inline-block w-3 h-[3px] rounded" style="background:var(--xp-purple)"></span>Runtime <span class="text-xp-mid-grey">(L, sec)</span></span>
-              <span class="flex items-center gap-1"><span class="inline-block w-3 h-[3px] rounded" style="background:var(--xp-teal-shade)"></span>Credits/run <span class="text-xp-mid-grey">(R)</span></span>
+              <span class="flex items-center gap-1"><span class="inline-block w-3 h-[3px]" style="background:repeating-linear-gradient(90deg, var(--xp-teal-shade) 0 4px, transparent 4px 7px)"></span>Credits/run <span class="text-xp-mid-grey">(R, dashed)</span></span>
               <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-full border" style="background:var(--xp-lime); border-color:var(--xp-lime-shade)"></span>Selected</span>
             </div>
             <svg id="tradeoffChart" viewBox="0 0 760 320" class="w-full" style="aspect-ratio: 760/320;" font-family="'Poppins', system-ui, sans-serif"></svg>
@@ -312,10 +332,10 @@
             </div>
             <div class="flex flex-wrap gap-3 text-[10px] text-xp-dark-grey">
               <span class="flex items-center gap-1"><span class="inline-block w-3 h-[3px] rounded" style="background:var(--xp-teal-shade)"></span>USD/mo <span class="text-xp-mid-grey">(L)</span></span>
-              <span class="flex items-center gap-1"><span class="inline-block w-3 h-[3px] rounded" style="background:var(--xp-pink)"></span>Runtime <span class="text-xp-mid-grey">(R, min)</span></span>
+              <span class="flex items-center gap-1"><span class="inline-block w-3 h-[3px]" style="background:repeating-linear-gradient(90deg, var(--xp-pink) 0 4px, transparent 4px 7px)"></span>Runtime <span class="text-xp-mid-grey">(R, min, dashed)</span></span>
               <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-full border" style="background:var(--xp-lime); border-color:var(--xp-lime-shade)"></span>Selected</span>
             </div>
-            <svg id="monthlyChart" viewBox="0 0 900 300" class="w-full" style="aspect-ratio: 3/1;" font-family="'Poppins', system-ui, sans-serif"></svg>
+            <svg id="monthlyChart" viewBox="0 0 760 320" class="w-full" style="aspect-ratio: 760/320;" font-family="'Poppins', system-ui, sans-serif"></svg>
           </article>
         </div>
       </section>
@@ -347,6 +367,7 @@
         lime: '#A2E10B',
         limeShade: '#85C600',
         pink: '#E44597',
+        pinkShade: '#B81E72',
         lemon: '#FFDA00',
         darkest: '#282F35',
         dark: '#545D63',
@@ -370,6 +391,8 @@
         return Math.round(1000 * (Math.log(clamped) - LN_FREQ_LO) / (LN_FREQ_HI - LN_FREQ_LO));
       }
       function getFreqMin() { return freqFromSlider(parseFloat($("frequencySlider").value) || 0); }
+
+      const MINUTES_PER_MONTH = 30 * 24 * 60;
 
       const WH_SIZES = [
         { label: "X-Small",  short: "XS",  cph: 1   },
@@ -422,6 +445,15 @@
         $("autosuspendVal").textContent = fmtInt(autosuspendS);
         $("creditCostVal").textContent  = usdPerCredit.toFixed(2);
 
+        // Spoken values for screen readers (aria-valuetext overrides the raw slider number)
+        const runsPerDay = freqMin > 0 ? fmtNum((24 * 60) / freqMin, 1) : "0";
+        $("runtimeMinutes").setAttribute("aria-valuetext", `${runtimeMin.toFixed(1)} minutes`);
+        $("frequencySlider").setAttribute("aria-valuetext", `every ${fmtInt(freqMin)} minutes, ${runsPerDay} times per day`);
+        $("warehouseSize").setAttribute("aria-valuetext", `${wh.label}, ${wh.cph} credits per hour`);
+        $("autosuspendSeconds").setAttribute("aria-valuetext", `${fmtInt(autosuspendS)} seconds`);
+        $("creditCost").setAttribute("aria-valuetext", `${fmtUsd(usdPerCredit)} per credit`);
+        $("speedupFactor").setAttribute("aria-valuetext", `${speedup.toFixed(2)} times per size step`);
+
         const runtimeSec   = runtimeMin * 60;
         const rawBilledSec = runtimeSec + autosuspendS;
         const billedSec    = Math.max(60, rawBilledSec);
@@ -431,8 +463,7 @@
         const creditsPerRun = (billedSec / 3600) * cph;
         const usdPerRun     = creditsPerRun * usdPerCredit;
 
-        const minutesPerMonth = 30 * 24 * 60;
-        const runsPerMonth    = freqMin > 0 ? minutesPerMonth / freqMin : 0;
+        const runsPerMonth    = freqMin > 0 ? MINUTES_PER_MONTH / freqMin : 0;
 
         const monthlyCredits = creditsPerRun * runsPerMonth;
         const monthlyUsd     = usdPerRun * runsPerMonth;
@@ -470,7 +501,7 @@
           `(<span class="num">${fmtNum(cph,2)}</span> credits/hr) ` +
           `with <b>${autosuspendS}s</b> auto-suspend, run every <b>${freqMin} min</b>, ` +
           `bills <span class="num">${fmtNum(billedSec,0)}s</span> per run ` +
-          `(${minPadSec > 0 ? `<span style="color:${C.pink}">incl. ${fmtNum(minPadSec,0)}s 60-second-minimum pad</span>` : "no min-pad"}). ` +
+          `(${minPadSec > 0 ? `<span style="color:${C.pinkShade}">incl. ${fmtNum(minPadSec,0)}s 60-second-minimum pad</span>` : "no min-pad"}). ` +
           `That's <b><span class="num">${fmtInt(runsPerMonth)}</span></b> runs / month → ` +
           `<b><span class="num">${fmtNum(monthlyCredits,1)}</span> credits</b> ≈ ` +
           `<b style="color:${C.purpleShade}">${fmtUsd(monthlyUsd)}</b> at ${fmtUsd(usdPerCredit)}/credit.`;
@@ -481,15 +512,16 @@
       ["warehouseSize","generation","autosuspendSeconds","creditCost","speedupFactor"]
         .forEach(id => $(id).addEventListener("input", () => { calc(); drawChart(); }));
 
-      const SIZES = [
-        { label: "XS",  cph: 1   },
-        { label: "S",   cph: 2   },
-        { label: "M",   cph: 4   },
-        { label: "L",   cph: 8   },
-        { label: "XL",  cph: 16  },
-        { label: "2XL", cph: 32  },
-        { label: "3XL", cph: 64  },
-      ];
+      // segmented Warehouse-generation toggle
+      $("generationToggle").addEventListener("click", (e) => {
+        const btn = e.target.closest(".gen-opt");
+        if (!btn) return;
+        const gen = $("generation");
+        gen.value = btn.dataset.value;
+        $("generationToggle").querySelectorAll(".gen-opt")
+          .forEach(b => b.setAttribute("aria-checked", b === btn ? "true" : "false"));
+        gen.dispatchEvent(new Event("input", { bubbles: true }));
+      });
 
       function smoothPath(pts) {
         if (pts.length < 2) return "";
@@ -516,10 +548,10 @@
         const autosuspendS = parseFloat($("autosuspendSeconds").value) || 0;
         const speedup      = parseFloat($("speedupFactor").value) || 1.7;
 
-        const anchorIdx    = SIZES.findIndex(s => s.cph === baseCph);
+        const anchorIdx    = WH_SIZES.findIndex(s => s.cph === baseCph);
         const anchorRuntimeSec = runtimeMin * 60;
 
-        const series = SIZES.map((s, i) => {
+        const series = WH_SIZES.map((s, i) => {
           const runtime = anchorRuntimeSec * Math.pow(1 / speedup, i - anchorIdx);
           const billed  = Math.max(60, runtime + autosuspendS);
           const credits = (billed / 3600) * (s.cph * genMult);
@@ -534,7 +566,7 @@
         const innerW = W - PAD.l - PAD.r;
         const innerH = H - PAD.t - PAD.b;
 
-        const xOf = i => PAD.l + (i / (SIZES.length - 1)) * innerW;
+        const xOf = i => PAD.l + (i / (WH_SIZES.length - 1)) * innerW;
         const yRuntime = v => PAD.t + innerH - (v / (maxRuntime || 1)) * innerH;
         const yCredits = v => PAD.t + innerH - (v / (maxCredits || 1)) * innerH;
 
@@ -558,10 +590,10 @@
           svg += `<text x="${W - PAD.r + 8}" y="${y + 4}" text-anchor="start" font-size="10" fill="${C.tealShade}">${fmtCr(v)}</text>`;
         }
 
-        SIZES.forEach((s, i) => {
+        WH_SIZES.forEach((s, i) => {
           const x = xOf(i);
           const isAnchor = i === anchorIdx;
-          svg += `<text x="${x}" y="${H - PAD.b + 18}" text-anchor="middle" font-size="11" font-weight="${isAnchor ? 700 : 500}" fill="${isAnchor ? C.limeShade : C.dark}">${s.label}</text>`;
+          svg += `<text x="${x}" y="${H - PAD.b + 18}" text-anchor="middle" font-size="11" font-weight="${isAnchor ? 700 : 500}" fill="${isAnchor ? C.limeShade : C.dark}">${s.short}</text>`;
           svg += `<text x="${x}" y="${H - PAD.b + 32}" text-anchor="middle" font-size="9" fill="${C.mid}">${s.cph} c/h</text>`;
         });
 
@@ -576,16 +608,15 @@
         svg += `<path fill="none" stroke="${C.purple}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="${smoothPath(runtimePts)}"/>`;
 
         const creditsPts = series.map((d,i) => [xOf(i), yCredits(d.credits)]);
-        svg += `<path fill="none" stroke="${C.tealShade}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="${smoothPath(creditsPts)}"/>`;
+        svg += `<path fill="none" stroke="${C.tealShade}" stroke-width="2.5" stroke-dasharray="7 5" stroke-linecap="round" stroke-linejoin="round" d="${smoothPath(creditsPts)}"/>`;
 
         series.forEach((d, i) => {
           const isAnchor = i === anchorIdx;
           svg += `<circle cx="${xOf(i)}" cy="${yRuntime(d.runtime)}" r="${isAnchor ? 5 : 3.5}" fill="${isAnchor ? C.lime : C.purple}" stroke="#fff" stroke-width="${isAnchor ? 2 : 1}"/>`;
           svg += `<circle cx="${xOf(i)}" cy="${yCredits(d.credits)}" r="${isAnchor ? 5 : 3.5}" fill="${isAnchor ? C.lime : C.tealShade}" stroke="#fff" stroke-width="${isAnchor ? 2 : 1}"/>`;
-          if (isAnchor) {
-            svg += `<text x="${xOf(i)}" y="${yRuntime(d.runtime) - 10}" text-anchor="middle" font-size="10" font-weight="700" fill="${C.purple}">${fmtSec(d.runtime)}</text>`;
-            svg += `<text x="${xOf(i)}" y="${yCredits(d.credits) - 10}" text-anchor="middle" font-size="10" font-weight="700" fill="${C.tealShade}">${fmtCr(d.credits)}</text>`;
-          }
+          // runtime labels above the point, credits labels below — keeps the two series from colliding
+          svg += `<text x="${xOf(i)}" y="${yRuntime(d.runtime) - 10}" text-anchor="middle" font-size="10" font-weight="${isAnchor ? 700 : 600}" fill="${isAnchor ? C.purpleShade : C.purple}">${fmtSec(d.runtime)}</text>`;
+          svg += `<text x="${xOf(i)}" y="${yCredits(d.credits) + 16}" text-anchor="middle" font-size="10" font-weight="${isAnchor ? 700 : 600}" fill="${C.tealShade}">${fmtCr(d.credits)}</text>`;
         });
 
         $("tradeoffChart").innerHTML = svg;
@@ -597,7 +628,7 @@
         const usd        = parseFloat($("creditCost").value) || 0;
         const speedup    = parseFloat($("speedupFactor").value) || 1.7;
         $("curveSpeedup2").textContent = speedup.toFixed(2);
-        const runsPerMonth = freqMin > 0 ? (30 * 24 * 60) / freqMin : 0;
+        const runsPerMonth = freqMin > 0 ? MINUTES_PER_MONTH / freqMin : 0;
 
         const data = series.map(d => ({
           ...d,
@@ -607,10 +638,14 @@
         const maxUsd = Math.max(...data.map(d => d.monthlyUsd), 1);
         const maxMin = Math.max(...data.map(d => d.runtimeMin), 0.01);
 
-        const W = 900, H = 300;
+        const W = 760, H = 320;
         const PAD = { l: 96, r: 112, t: 24, b: 56 };
         const innerW = W - PAD.l - PAD.r;
         const innerH = H - PAD.t - PAD.b;
+
+        // Fonts are sized relative to the trade-off chart's 760-unit viewBox so both
+        // charts render text at the same on-screen size regardless of viewBox width.
+        const fs = n => (n * W / 760).toFixed(1);
 
         const xOf  = i => PAD.l + (i / (data.length - 1)) * innerW;
         const yUsd = v => PAD.t + innerH - (v / maxUsd) * innerH;
@@ -633,9 +668,9 @@
           const y = PAD.t + (g / 4) * innerH;
           svg += `<line x1="${PAD.l}" x2="${W - PAD.r}" y1="${y}" y2="${y}" stroke="${C.lightGrey}" stroke-width="1"/>`;
           const vU = maxUsd * (1 - g / 4);
-          svg += `<text x="${PAD.l - 8}" y="${y + 4}" text-anchor="end" font-size="10" fill="${C.tealShade}">${fmtUsdShort(vU)}</text>`;
+          svg += `<text x="${PAD.l - 8}" y="${y + 4}" text-anchor="end" font-size="${fs(10)}" fill="${C.tealShade}">${fmtUsdShort(vU)}</text>`;
           const vM = maxMin * (1 - g / 4);
-          svg += `<text x="${W - PAD.r + 8}" y="${y + 4}" text-anchor="start" font-size="10" fill="${C.pink}">${fmtMin(vM)}</text>`;
+          svg += `<text x="${W - PAD.r + 8}" y="${y + 4}" text-anchor="start" font-size="${fs(10)}" fill="${C.pink}">${fmtMin(vM)}</text>`;
         }
 
         if (anchorIdx >= 0) {
@@ -645,29 +680,28 @@
         data.forEach((d, i) => {
           const cx = xOf(i);
           const isAnchor = i === anchorIdx;
-          svg += `<text x="${cx}" y="${H - PAD.b + 18}" text-anchor="middle" font-size="11" font-weight="${isAnchor ? 700 : 500}" fill="${isAnchor ? C.limeShade : C.dark}">${d.label}</text>`;
-          svg += `<text x="${cx}" y="${H - PAD.b + 32}" text-anchor="middle" font-size="9" fill="${C.mid}">${d.cph} c/h</text>`;
+          svg += `<text x="${cx}" y="${H - PAD.b + 18}" text-anchor="middle" font-size="${fs(11)}" font-weight="${isAnchor ? 700 : 500}" fill="${isAnchor ? C.limeShade : C.dark}">${d.short}</text>`;
+          svg += `<text x="${cx}" y="${H - PAD.b + 32}" text-anchor="middle" font-size="${fs(9)}" fill="${C.mid}">${d.cph} c/h</text>`;
         });
 
-        svg += `<text x="${PAD.l - 64}" y="${PAD.t + innerH/2}" transform="rotate(-90 ${PAD.l - 64} ${PAD.t + innerH/2})" text-anchor="middle" font-size="10" fill="${C.tealShade}" font-weight="700" letter-spacing="1.5">USD / MONTH</text>`;
-        svg += `<text x="${W - PAD.r + 64}" y="${PAD.t + innerH/2}" transform="rotate(90 ${W - PAD.r + 64} ${PAD.t + innerH/2})" text-anchor="middle" font-size="10" fill="${C.pink}" font-weight="700" letter-spacing="1.5">RUNTIME / RUN</text>`;
+        svg += `<text x="${PAD.l - 64}" y="${PAD.t + innerH/2}" transform="rotate(-90 ${PAD.l - 64} ${PAD.t + innerH/2})" text-anchor="middle" font-size="${fs(10)}" fill="${C.tealShade}" font-weight="700" letter-spacing="1.5">USD / MONTH</text>`;
+        svg += `<text x="${W - PAD.r + 64}" y="${PAD.t + innerH/2}" transform="rotate(90 ${W - PAD.r + 64} ${PAD.t + innerH/2})" text-anchor="middle" font-size="${fs(10)}" fill="${C.pink}" font-weight="700" letter-spacing="1.5">RUNTIME / RUN</text>`;
 
         const usdPts = data.map((d,i) => [xOf(i), yUsd(d.monthlyUsd)]);
         svg += `<path fill="none" stroke="${C.tealShade}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="${smoothPath(usdPts)}"/>`;
         const minPts = data.map((d,i) => [xOf(i), yMin(d.runtimeMin)]);
-        svg += `<path fill="none" stroke="${C.pink}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="${smoothPath(minPts)}"/>`;
+        svg += `<path fill="none" stroke="${C.pink}" stroke-width="2.5" stroke-dasharray="7 5" stroke-linecap="round" stroke-linejoin="round" d="${smoothPath(minPts)}"/>`;
 
         data.forEach((d, i) => {
           const isAnchor = i === anchorIdx;
           svg += `<circle cx="${xOf(i)}" cy="${yUsd(d.monthlyUsd)}" r="${isAnchor ? 5 : 3.5}" fill="${isAnchor ? C.lime : C.tealShade}" stroke="#fff" stroke-width="${isAnchor ? 2 : 1}"/>`;
           svg += `<circle cx="${xOf(i)}" cy="${yMin(d.runtimeMin)}" r="${isAnchor ? 5 : 3.5}" fill="${isAnchor ? C.lime : C.pink}" stroke="#fff" stroke-width="${isAnchor ? 2 : 1}"/>`;
-          if (isAnchor) {
-            svg += `<text x="${xOf(i)}" y="${yUsd(d.monthlyUsd) - 10}" text-anchor="middle" font-size="10" font-weight="700" fill="${C.tealShade}">${fmtUsdShort(d.monthlyUsd)}</text>`;
-            svg += `<text x="${xOf(i)}" y="${yMin(d.runtimeMin) - 10}" text-anchor="middle" font-size="10" font-weight="700" fill="${C.pink}">${fmtMin(d.runtimeMin)}</text>`;
-          }
+          // USD labels above the point, runtime labels below — keeps the two series from colliding
+          svg += `<text x="${xOf(i)}" y="${yUsd(d.monthlyUsd) - 10}" text-anchor="middle" font-size="${fs(10)}" font-weight="${isAnchor ? 700 : 600}" fill="${C.tealShade}">${fmtUsdShort(d.monthlyUsd)}</text>`;
+          svg += `<text x="${xOf(i)}" y="${yMin(d.runtimeMin) + 16}" text-anchor="middle" font-size="${fs(10)}" font-weight="${isAnchor ? 700 : 600}" fill="${C.pink}">${fmtMin(d.runtimeMin)}</text>`;
         });
 
-        svg += `<text x="${W - PAD.r}" y="${H - 8}" text-anchor="end" font-size="10" fill="${C.mid}">${Math.round(runsPerMonth).toLocaleString()} runs / month</text>`;
+        svg += `<text x="${W - PAD.r}" y="${H - 8}" text-anchor="end" font-size="${fs(10)}" fill="${C.mid}">${Math.round(runsPerMonth).toLocaleString()} runs / month</text>`;
 
         $("monthlyChart").innerHTML = svg;
       }
